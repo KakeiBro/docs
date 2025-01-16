@@ -5,6 +5,5 @@ start_page: index.adoc
 asciidoc:
   attributes:
     table-caption: false
-    site-title: KakeiBro Docs
 nav:
 - modules/ROOT/nav.adoc
