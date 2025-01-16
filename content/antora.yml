@@ -1,0 +1,9 @@
+name: kakeibro-docs
+title: KakeiBro Docs
+version: 0.0.1
+start_page: index.adoc
+asciidoc:
+  attributes:
+    table-caption: false
+nav:
+- modules/ROOT/nav.adoc

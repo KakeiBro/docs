@@ -1,0 +1,3 @@
+= Welcome to KakeiBro's Docs
+:navtitle: Introduction
+
