@@ -1,3 +1,14 @@
 = Welcome to KakeiBro's Docs
 :navtitle: Introduction
 
+[plantuml, building-block-lvl2-media, png]
+....
+skinparam monochrome true
+title Home Entertainment - Building Block Lvl2 - Media Manager
+footer ACME Inc. %date[yyyy]%
+
+component "Media Manager" as mediaman {
+  node "Sat Receiver" as sat
+  node "Streaming Service" as streaming
+}
+....
