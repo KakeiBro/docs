@@ -1,0 +1,21 @@
+title Application Architecture
+
+package "Frontend" {
+  [React UI] as frontend
+}
+
+package "Backend" {
+  [.NET Modular Monolith] as modulith
+}
+
+database "Database" {
+  [Redis] as redis
+}
+
+folder "Disk File" {
+  [Redis Persistent File] as redis_file
+}
+
+frontend --> modulith : "Sends requests"
+modulith --> redis : "Reads/Writes data"
+redis <-> redis_file : "Reads/Writes to disk"

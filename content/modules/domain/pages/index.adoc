@@ -1,0 +1,35 @@
+= KakeiBro's Domain
+:navtitle: Domain
+
+KakeiBro, is a play on words with the Japanese word "Kakeibo" (家計簿). Which literally 
+translates to "House Ledger Book". Whilst this is just a name for an object, in the 
+Japanese space it goes beyond just that. It's a way of keeping track of finances by 
+yourself with a set of guidelines and concepts that help you understand how your money 
+flows and how to better manage it.
+
+== High Level Architecture
+
+Without getting into the weeds of it just yet, we will make use of a UML Component 
+Diagram in order to explain how the application is laid out:
+
+[plantuml, architecture-component-diagram, svg]
+....
+include::partial$diagrams/architecture-component.puml[]
+....
+
+[.text-center]
+_Figure 1._ High Level Breakdown of Architecture
+
+=== React UI
+
+This page is automatically used as the start page of Component B because it is 
+stored in the ROOT module and named [.path]_index.adoc_.
+
+=== .NET Modulith
+
+This page is used as the home page for the Antora Demo because it is assigned as 
+the site `start_page` in the Demo site's playbook file [.path]_site.yml_.
+
+=== Redis Database
+
+=== Disk File
