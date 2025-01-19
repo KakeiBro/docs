@@ -12,7 +12,7 @@ database "Database" {
   [Redis] as redis
 }
 
-folder "Disk File" {
+folder "Disk" {
   [Redis Persistent File] as redis_file
 }
 

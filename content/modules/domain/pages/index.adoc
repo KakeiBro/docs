@@ -1,12 +1,6 @@
 = KakeiBro's Domain
 :navtitle: Domain
 
-KakeiBro, is a play on words with the Japanese word "Kakeibo" (家計簿). Which literally 
-translates to "House Ledger Book". Whilst this is just a name for an object, in the 
-Japanese space it goes beyond just that. It's a way of keeping track of finances by 
-yourself with a set of guidelines and concepts that help you understand how your money 
-flows and how to better manage it.
-
 == High Level Architecture
 
 Without getting into the weeds of it just yet, we will make use of a UML Component 
@@ -22,14 +16,45 @@ _Figure 1._ High Level Breakdown of Architecture
 
 === React UI
 
-This page is automatically used as the start page of Component B because it is 
-stored in the ROOT module and named [.path]_index.adoc_.
+When it comes to the UI side of things, a React with Vite application is the one 
+powering the user interactions with the system.
+
+Most important libraries:
+
+- Vite
+- Vitest
+- Emotion (compiled css styles in order to UT css behaviors)
+- Forms (TBD)
+- Apache Graphs
 
 === .NET Modulith
 
-This page is used as the home page for the Antora Demo because it is assigned as 
-the site `start_page` in the Demo site's playbook file [.path]_site.yml_.
+Following the _Modular Monolith_ architecture, the backend is a single ASP.NET Restful 
+API that runs everything as a monolith, but has enough logical and physical modularization 
+that is easier to maintain, extend but also faster to migrate to something like microservices.
+
+**_Another way to look at it is a hybrid between a Monolith and Microservices._**
+
+Inside of it we have the following modules identified:
+
+Users:: Module focused entirely on the management of the users that can access 
+the system. It will integrate with Google's OAuth, and possibly with MFA.
+Finances:: Module focused entirely on the management of both the management of data 
+and visualization of **_to the point_** indicators of personal finances.
+Intelligence:: Module focused entirely on more complex and insightful graphs, charts, 
+tables that process all the finances data and give a much more round outlook on the 
+health and areas of improvement for an individual's finances.
 
 === Redis Database
 
+Redis is a fully-fledged Database solution, focused on speed and with great extensions to 
+its base service, whilst its behavior by default is an on-memory database. It also 
+has integrations with files written into disk for persistency reasons, alongside OM 
+(Object Mapping) capabilities that allow for an easy _EF-Core_ like developer experience.
+
 === Disk File
+
+This is the last part of the integration, whilst not a service itself, it's a system 
+file this will power Redis in order to keep data persistent (and allow for backing up 
+extensions). By restoring state from a file the moment the service boots up, we can keep 
+a consistent state of all the financial information.

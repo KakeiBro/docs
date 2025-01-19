@@ -1,14 +1,8 @@
 = Welcome to KakeiBro's Docs
 :navtitle: Introduction
 
-[plantuml, building-block-lvl2-media, png]
-....
-skinparam monochrome true
-title Home Entertainment - Building Block Lvl2 - Media Manager
-footer ACME Inc. %date[yyyy]%
-
-component "Media Manager" as mediaman {
-  node "Sat Receiver" as sat
-  node "Streaming Service" as streaming
-}
-....
+KakeiBro, is a play on words with the Japanese word "Kakeibo" (家計簿). Which literally 
+translates to "House Ledger Book". Whilst this is just a name for an object, in the 
+Japanese space it goes beyond just that. It's a way of keeping track of finances by 
+yourself with a set of guidelines and concepts that help you understand how your money 
+flows and how to better manage it.
