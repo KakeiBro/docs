@@ -1,0 +1,106 @@
+= Intelligence Module
+
+The **Intelligence Module** focuses on more fine-grained, granular and complex techniques 
+plus concepts, leveraged, in order to provide more refined, actionable and rounded 
+insights of the finances one is managing.
+
+_As an excerpt from theory:_ Financial intelligence dashboards rely on various 
+chart types to visualize data effectively and provide actionable insights. 
+The choice of chart depends on the data being represented and the kind of insights 
+needed. Some commonly used chart types can be:
+
+== Chart Types
+
+=== Time Series Charts
+
+Line Chart::
+Tracks financial metrics like revenue, expenses, or stock prices over time.
+Ideal for identifying trends, seasonality, and patterns.
+Candlestick Chart::
+Commonly used in stock market analysis to show open, close, high, and low prices 
+for a specific time frame.
+Area Chart::
+Similar to line charts but with filled areas, useful for emphasizing the magnitude 
+of trends.
+
+=== Comparison Charts
+
+Bar Chart::
+Used for comparing financial metrics like revenue across regions, departments, 
+or products.
+Column Chart::
+Similar to bar charts but vertical; good for comparing categories over time.
+Stacked Bar/Column Chart::
+Displays subcategories within total amounts, such as expense breakdowns.
+
+=== Distribution Charts
+
+Histogram::
+Shows frequency distribution of financial data, like sales by transaction size.
+Box Plot::
+Useful for spotting outliers and variability in financial metrics like profit 
+margins.
+
+=== Composition Charts
+
+Pie Chart::
+Illustrates proportions, such as market share or budget allocation. Works best for 
+small numbers of categories.
+Donut Chart::
+A variation of the pie chart with a central space, often used for multitiered 
+breakdowns.
+Waterfall Chart::
+Demonstrates how individual components contribute to a total, such as showing 
+profits by adding revenues and subtracting costs.
+
+=== Correlation and Relationships
+
+Scatter Plot::
+Shows relationships between two variables, such as revenue and customer 
+acquisition cost.
+Bubble Chart::
+Adds a third dimension to scatter plots, using bubble size to represent an 
+additional metric like market size.
+
+=== Performance Tracking
+
+Gauge/Speedometer Chart::
+Displays key performance indicators (KPIs) like profit margins or sales goals.
+Bullet Chart::
+An advanced version of a bar chart to show performance against a target.
+
+=== Hierarchical Charts
+
+Tree Map::
+Visualizes proportions within a hierarchy, such as portfolio allocations by asset 
+class.
+Sunburst Chart::
+Similar to tree maps but circular; ideal for showing hierarchical data.
+
+=== Forecasting and Advanced Analytics
+
+Forecasting Line Chart::
+Shows predicted trends alongside historical data.
+Heat Map::
+Displays financial performance intensity or correlations across regions, 
+departments, or time.
+
+=== Specialized Financial Charts
+
+Gantt Chart::
+Tracks project timelines and milestones for budgeting or cost analysis.
+Pareto Chart::
+Combines a bar chart and a line chart to identify the largest contributing factors 
+to an issue, like expense categories.
+
+=== Choosing the Right Chart
+
+Trend Analysis:: Line charts, area charts.
+Comparison:: Bar, column, and pie charts.
+Relationships:: Scatter and bubble charts.
+Details in Hierarchies:: Tree maps, sunburst charts.
+Performance Metrics:: Bullet and gauge charts.
+
+Combining multiple chart types into a dashboard often provides the most 
+comprehensive insights. Selecting the right chart depends on the story you want 
+to tell with your data.

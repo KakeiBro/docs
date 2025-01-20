@@ -55,6 +55,21 @@ has integrations with files written into disk for persistency reasons, alongside
 === Disk File
 
 This is the last part of the integration, whilst not a service itself, it's a system 
-file this will power Redis in order to keep data persistent (and allow for backing up 
+file that will power Redis in order to keep data persistent (and allow for backing up 
 extensions). By restoring state from a file the moment the service boots up, we can keep 
 a consistent state of all the financial information.
+
+== Domain Driven Design
+
+The system is focused on one specific idea: **_"Allow for someone to keep track of their finances 
+by inputting their income and costs, processing that and showing much more insightful 
+representations of data"_**.
+
+With this idea in mind, we need different modules/bounded contexts that help with 
+the different functionalities that will allow for us to get the value out of the system, 
+these modules are hard-coded into what will later be modules as both a concept and the 
+backend's logical units of separations.
+
+- Users
+- Finances
+- Intelligence
