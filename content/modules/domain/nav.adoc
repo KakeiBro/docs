@@ -1,2 +1,6 @@
 * xref:index.adoc[]
+** xref:authentication-module.adoc[]
+** xref:users-module.adoc[]
+** xref:finances-module.adoc[]
 ** xref:intelligence-module.adoc[]
+** xref:ubiquitous-language.adoc[]

@@ -1,0 +1,26 @@
+= Authentication Module
+
+It has been decided that we will integrate with Google's OAuth service, this is 
+a safe protocol that simply passes through Google's Auth Services in order to validate 
+a user, if it's successfully validated we will then just keep track of that Google 
+Metadata in the system. (This takes away the need to create a user through the system 
+and simply leverage a Google account). This is a **fundamental design choice**, we 
+are coupled with Google OAuth due to this.
+
+== Two-Factor Authentication
+
+In order to add an extra layer of security to the application, 2FA can be enabled 
+for a user (the user himself has the capacity to do that for himself). This will also 
+integrate with an external 2FA application. The ones that have been tested and are 
+recommended are: **_Google Auth, Microsoft Auth._**
+
+Once the user "switches on" 2FA, a small flow in order to register with an Auth App 
+is triggered, and every-time the user logs into the system he will be asked for the 
+2FA code. (TBD: We could also enable a small check to ask the user if he wants to 
+remember the device so that 2FA is not asked on this device).
+
+Whilst for "ease-of-use" an option can be checked to remember the device, we have to 
+be mindful that this is a **_financial management system_**. It holds critical 
+information in regards to a person. So we have to add an extra confirmation check 
+for the user explaining the meaning of remembering the device. **This is the pilar 
+of how the system should be understood**.

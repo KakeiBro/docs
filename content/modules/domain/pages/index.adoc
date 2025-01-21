@@ -70,6 +70,7 @@ the different functionalities that will allow for us to get the value out of the
 these modules are hard-coded into what will later be modules as both a concept and the 
 backend's logical units of separations.
 
+- Authentication
 - Users
 - Finances
 - Intelligence

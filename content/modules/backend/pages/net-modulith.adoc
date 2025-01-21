@@ -1,0 +1,4 @@
+= .NET Modulith
+
+The backend's main node is the ASP.NET Core Restful Web API, that is built based on the 
+Modular Monolith Architecture Pattern.

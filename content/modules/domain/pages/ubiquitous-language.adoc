@@ -1,0 +1,20 @@
+= Ubiquitous Language
+
+Following DDD's design principles, a ubiquitous language is neccesary for us in 
+order to speak both on the dev side and on the business side of things. This page 
+is focused entirely on the key terms that both the reality of the problem and 
+the system uses and their definitions. A glossary in short.
+
+2FA::
+Two Factor Authentication. The method used for logging in with a timed-code that 
+a user's device (usually a smartphone) generates. It adds an extra layer of security 
+to an account.
+OAuth::
+The protocol that is used with Google Services in order to authenticate with them 
+and get back a _yes_ or _no_ response for a login attempt.
+Bookkeeper::
+This is the base user that will use the system the most and runs most of the 
+workflows. Adds, edits, deletes data alongside querying it in its various forms.
+SysAdmin::
+This is a super-user that gets access to user management, CRUDs of _bookkeepers_, 
+reset credentials.

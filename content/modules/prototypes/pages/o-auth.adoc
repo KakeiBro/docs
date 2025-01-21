@@ -1,0 +1,18 @@
+= Google OAuth 2.0
+
+Following https://developers.google.com/api-client-library/dotnet/guide/aaa_oauth[documentation], 
+a prototype has been built in order to understand better how to integrate with 
+Google OAuth.
+
+The prototype itself is an ASP.NET Core Restful Web API built on .NET 9. The 
+repository can be found at https://github.com/KakeiBro/google-oauth[GitHub].
+
+== Usage
+
+The project is pretty simple, there are , Postman can be used in order to hit them, 
+however, due to the integration with `.http` files, even at the IDE level we can 
+hit the endpoints with no issue whatsoever. Just open up any of these files and 
+then click on the `Send Request` button that pops up.
+
+== Cross-Cutting Concerns
+
