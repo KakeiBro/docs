@@ -7,12 +7,189 @@ Google OAuth.
 The prototype itself is an ASP.NET Core Restful Web API built on .NET 9. The 
 repository can be found at https://github.com/KakeiBro/google-oauth[GitHub].
 
+Google has different levels of access, and it has a clear separation between _Authorization_ 
+and _Authentication_. But this application itself only leverages half of what Google 
+might offer, since we simply want for google to take care of the authentication 
+flow for us through a Google Account, we will be using a `web` client type for 
+the Google exchange that takes place. 
+
+The steps that one would normally take for a web client authentication flow will 
+be:
+
+1. Your application (UI) redirects a browser to a Google URL; the URL includes query 
+parameters that indicate the type of access being requested.
+2. Google handles the user authentication, session selection, and user consent. 
+The result is an authorization code, which the application can exchange for an 
+access token and refresh token.
+3. The application gets an authorization code that we can later exchange for an 
+access token and a refresh token.
+4. The application should store the refresh token for future use and use the access 
+token to access a Google API. Once the access token expires, the application uses the 
+refresh token to obtain a new one.
+
+== Google OAuth Setup
+
+The tutorials that were used in order to find out how to integrate with Google's OAuth 
+were:
+
+- https://developers.google.com/api-client-library/dotnet/get_started[Dotnet Library]
+- https://developers.google.com/identity/protocols/oauth2/web-server#httprest_1[OAuth for Web Server Applications]
+- https://cloud.google.com/resource-manager/docs/creating-managing-projects?visit_id=638731573502905114-2035959981&rd=1[A good way to setup a Google Console App]
+
+First of all a Google Cloud Project should be created in order to tie into it applications, 
+and other integrations with all the services that Google Cloud offers. A **KakeiBro** 
+project has been created and that will be the nexus into Google OAuth.
+
+Due to us having to integrate with Google Cloud, we have to keep some sort of data 
+that can help us trackdown the user that's on Google Cloud, and that be tied into our 
+own data. Hence we will just make requests to Google, the user will authorize the usage 
+of his account and on his behalf we will be then get some metadata from Google and 
+use that to then concretize the user registration.
+
+_Meaning we will have to make do with what Google has and we create on the background 
+all the data from the user_. It's basically a facade in which we make use of Google 
+for the Auth, if everything is okay from their side, we simply get back tokens, enable 
+a bit of logic to then use tokens and refresh tokens accordingly.
+
+[NOTE]
+====
+It would probably be a good idea to leverage Redis and its TTL setting on a record to 
+invalidate the token once everything expires. Also, we can leverage Redis and some key 
+in there to retrieve the token if it is still valid (send it to the client and then 
+have the client not cache it in local storage, but the database always returning that 
+and then the client saving it into memory if it doesn't find it).
+====
+
+Once the project is created, you have to configure the `Google Auth Platform`. Which is 
+one of the services at the _Google Cloud Console_. It's here that you will have to setup 
+the service so that we can get a client secret, and a client ID in order to start consuming 
+the application. Luckily the setup process is pretty self-explanatory so just follow the steps.
+
+Once that's done, you need to get a Client that will be under the project. However for this 
+you have to configure the `Consent Screen`. This requires a logo, alongside links 
+for an Application home page, a privacy policy link, and a ToS link. Make sure to 
+add all the domains that are used for these links to be also added as part of the 
+`Authorized Domains` section.
+
+After this is done, you might have to wait a bit until the consent page state is updated, 
+but once it is you can go into the `Clients` tap and then create a client that should be 
+for web, and it will ask for information in regards to the app, alongside the callback 
+URI and the javascript sources that will be authorized. Once the client is created, 
+you can go and download all the secrets in a `.json` format. This is extremely sensitive 
+information, so add that to a `.gitignore` and never commit them, there's a secret, 
+and other information specifically catered to authenticate the client when trying to 
+access the Google Auth API.
+
 == Usage
 
 The project is pretty simple, there are , Postman can be used in order to hit them, 
 however, due to the integration with `.http` files, even at the IDE level we can 
 hit the endpoints with no issue whatsoever. Just open up any of these files and 
 then click on the `Send Request` button that pops up.
+
+=== Illustrative Code
+
+This is a really ad-hoc implementation that can help you understand how we should be 
+using both the API and how the flows should work when trying to integrate with Google 
+Auth:
+
+[source, csharp]
+----
+using System;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
+using System.Text.Json;
+using System.Threading.Tasks;
+
+class Program
+{
+    private static readonly string clientId = "YOUR_CLIENT_ID";
+    private static readonly string clientSecret = "YOUR_CLIENT_SECRET";
+    private static readonly string redirectUri = "http://localhost:5000/google-auth-callback";
+    private static readonly string authorizationEndpoint = "https://accounts.google.com/o/oauth2/v2/auth";
+    private static readonly string tokenEndpoint = "https://oauth2.googleapis.com/token";
+
+    static async Task Main(string[] args)
+    {
+        // Step 1: Direct user to Google's authorization endpoint
+        var authorizationUrl = $"{authorizationEndpoint}?client_id={clientId}" +
+                               $"&redirect_uri={Uri.EscapeDataString(redirectUri)}" +
+                               $"&response_type=code&scope=openid email profile";
+        Console.WriteLine("Visit the following URL to authorize the app:");
+        Console.WriteLine(authorizationUrl);
+
+        // Step 2: User enters the authorization code
+        Console.Write("\nEnter the authorization code: ");
+        var authorizationCode = Console.ReadLine();
+
+        // Step 3: Exchange authorization code for tokens
+        var tokens = await GetTokensAsync(authorizationCode);
+        Console.WriteLine("\nAccess Token: " + tokens.AccessToken);
+        Console.WriteLine("Refresh Token: " + tokens.RefreshToken);
+    }
+
+    private static async Task<TokenResponse> GetTokensAsync(string authorizationCode)
+    {
+        using var httpClient = new HttpClient();
+
+        var requestContent = new FormUrlEncodedContent(new[]
+        {
+            new KeyValuePair<string, string>("code", authorizationCode),
+            new KeyValuePair<string, string>("client_id", clientId),
+            new KeyValuePair<string, string>("client_secret", clientSecret),
+            new KeyValuePair<string, string>("redirect_uri", redirectUri),
+            new KeyValuePair<string, string>("grant_type", "authorization_code"),
+        });
+
+        var response = await httpClient.PostAsync(tokenEndpoint, requestContent);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorContent = await response.Content.ReadAsStringAsync();
+            throw new Exception($"Error fetching tokens: {response.StatusCode} {errorContent}");
+        }
+
+        var responseContent = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<TokenResponse>(responseContent);
+    }
+}
+
+// Helper class to parse token response
+public class TokenResponse
+{
+    public string AccessToken { get; set; }
+    public string RefreshToken { get; set; }
+    public string TokenType { get; set; }
+    public int ExpiresIn { get; set; }
+    public string Scope { get; set; }
+}
+----
+
+=== Folder Structure
+
+We are skipping over architecture patterns since this is a prototype (at least for now), 
+we are focusing on trying out quickly the ideas we have in mind, in short this is 
+a deliverable from a _Spike_ that concerns about OAuth's capabilities in .NET.
+
+The structure for the solution closely resembles its physical folder structure:
+
+```
+- GoogleOAuthPrototype
+|-- src
+|   |-- GoogleOAuthPrototype.Application
+|-- test
+|   |-- GoogleOAuthPrototype.Application.UnitTests
+|-- files
+|   |-- client_secrets.json
+```
+
+
+The `client_secrets.json` file is there for illustrative purposes since it will 
+never be comitted to version control. But it should be here as a base line of the 
+source of truth when it comes to connecting to the virtual application that is living 
+at Google Cloud.
+
 
 == Cross-Cutting Concerns
 
