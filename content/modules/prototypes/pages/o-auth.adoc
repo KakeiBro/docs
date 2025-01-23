@@ -82,10 +82,37 @@ access the Google Auth API.
 
 == Usage
 
-The project is pretty simple, there are , Postman can be used in order to hit them, 
-however, due to the integration with `.http` files, even at the IDE level we can 
-hit the endpoints with no issue whatsoever. Just open up any of these files and 
-then click on the `Send Request` button that pops up.
+The project is pretty simple, there are 3 endpoints:
+
+- /api/generate-url
+- /api/google-auth-callback
+- /api/get-tokens
+
+Postman can be used in order to hit them, however, due to the integration with 
+`.http` files, even at the IDE level we can hit the endpoints with no issue whatsoever. 
+Just open up any of these files and then click on the `Send Request` button that pops up.
+
+/api/generate-url::
+The first endpoint that we should be calling, this constructs the url that can then 
+be opened in a browser to then work with Google's Auth Website. In the end it 
+will automatically call the `/api/google-callback` the moment authorization is successful.
+/api/google-auth-callback::
+This is an open endpoint that should be hit by the browser Google Auth website 
+once the flow is completed. It should send request params with the authentication code 
+(if the flow succeeded).
+/api/get-tokens::
+After we get the authentication code from Google's side, this endpoint should receive 
+it in order to talk to Google's API and then get back both a user token and its refresh 
+token.
+
+[NOTE]
+====
+It's worth noting that after an authorization code has been used for the token exchange 
+it will be invalidated immediately, meaning that the whole flow has to be started over. Also, 
+once a user has accepted the application for the first time, it will no longer ask for 
+consent in the sense of asking for Confirm buttons, just the selection of the account 
+will suffice.
+====
 
 === Illustrative Code
 
