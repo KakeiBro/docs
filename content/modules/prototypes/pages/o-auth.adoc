@@ -106,7 +106,11 @@ The structure for the solution closely resembles its physical folder structure:
 - GoogleOAuthPrototype
 |-- src
 |   |-- GoogleOAuthPrototype.Application
-|   |   |-- client_secrets.json
+|   |   |-- Constants
+|   |   |-- Files
+|   |   |   |-- client_secrets.json
+|   |   |-- POCO
+|   |   |-- Services
 |-- test
 |   |-- GoogleOAuthPrototype.Application.UnitTests
 ```
@@ -119,24 +123,13 @@ at Google Cloud. The code has been adapted so that this file is neccesary to be 
 that way the prototype will be able to boot up, consume the google credentials and 
 work as intended. This is neccesary to avoid leaking sensitive information.
 
+Besides that, folders are separated by technical concerns (this is not recommended for 
+big projects), but since the prototype is so small, then it's fine for simplicity's 
+sake alongside a clear pathway into component visualization when it comes to enumerating 
+all that's needed in order to integrate with Google Auth.
+
 == Cross-Cutting Concerns
 
 === Configurations and Security
 
-When it comes to one really important _CCC_ it is the fact that we need credentials 
-from Google in order to hit their endpoints and then on behalf of a user start consuming 
-their APIs.
-
-It is due to this, that we have to establish an implementation that accounts for a secure 
-way to hydrate the app with the data that only lives on a workstation, and is never 
-uploaded to version control.
-
-It was decided that in order to work with this, we have to download the 
-`client_secrets.json` file, put it inside the `Application/Files` folder. If the 
-files is for the right application registered in **Google Console**, then all flows 
-should work correctly.
-
-When putting an app into production we should definitely leverage the `IConfiguration` 
-interface and its APIs alongside the usage of environmental variables in order to safely 
-hydrate with the right set of credentials at build/deploy times, and not hard-coding it into 
-the project.
+include::partial$cross-cutting-concerns.adoc[]

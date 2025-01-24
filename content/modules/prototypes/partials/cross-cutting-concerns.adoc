@@ -1,0 +1,17 @@
+When it comes to one really important _CCC_ it is the fact that we need credentials 
+from Google in order to hit their endpoints and then on behalf of a user start consuming 
+their APIs.
+
+It is due to this, that we have to establish an implementation that accounts for a secure 
+way to hydrate the app with the data that only lives on a workstation, and is never 
+uploaded to version control.
+
+It was decided that in order to work with this, we have to download the 
+`client_secrets.json` file, put it inside the `Application/Files` folder. If the 
+file is for the right application registered in **Google Console**, then all flows 
+should work correctly.
+
+When putting an app into production we should definitely leverage the `IConfiguration` 
+interface and its APIs alongside the usage of environmental variables in order to safely 
+hydrate with the right set of credentials at build/deploy times, and not hard-coding it into 
+the project.
