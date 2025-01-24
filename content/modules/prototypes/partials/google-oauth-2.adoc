@@ -1,0 +1,26 @@
+Following https://developers.google.com/api-client-library/dotnet/guide/aaa_oauth[documentation], 
+a prototype has been built in order to understand better how to integrate with 
+Google OAuth.
+
+The prototype itself is an ASP.NET Core Restful Web API built on .NET 9. The 
+repository can be found at https://github.com/KakeiBro/google-oauth[GitHub].
+
+Google has different levels of access, and it has a clear separation between _Authorization_ 
+and _Authentication_. But this application itself only leverages half of what Google 
+might offer, since we simply want for google to take care of the authentication 
+flow for us through a Google Account, we will be using a `web` client type for 
+the Google exchange that takes place. 
+
+The steps that one would normally take for a web client authentication flow will 
+be:
+
+1. Your application (UI) redirects a browser to a Google URL; the URL includes query 
+parameters that indicate the type of access being requested.
+2. Google handles the user authentication, session selection, and user consent. 
+The result is an authorization code, which the application can exchange for an 
+access token and refresh token.
+3. The application gets an authorization code that we can later exchange for an 
+access token and a refresh token.
+4. The application should store the refresh token for future use and use the access 
+token to access a Google API. Once the access token expires, the application uses the 
+refresh token to obtain a new one.

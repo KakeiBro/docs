@@ -1,0 +1,117 @@
+The base documentation used for this was:
+
+https://developers.google.com/identity/protocols/oauth2/web-server#offline[OAuth2 with Web Server]
+
+- `https://accounts.google.com/o/oauth2/v2/auth` Is the first endpoint that should be 
+called when initializing the flow. In here there are different query params that 
+can be sent.
++
+[cols="1,2", options="header"]
+|===
+| Parameter
+| Description
+
+| client_id
+| **Required** Client ID for the application this comes from the `Clients` page 
+at Google Console.      
+
+| redirect_uri
+| **Required** Determines where the API server redirects the browser after the auth 
+flow is completed. The value must match exactly one of the authorized redirect URIs 
+on the OAuth 2.0 client. If this doesn't match you will get a `redirect_uri_mismatch`. 
+`http` or `https` scheme, case, and trailing slash ('/') must all match.
+
+| scope
+| **Required** A space-delimited list of scopes that identify the resources that your 
+application could access on the user's behalf. These values inform the google consent 
+screen that Google displays to the user.
+
+| response_type
+| **Required** Determines whether the Google OAuth 2.0 endpoint returns an authorization 
+code. Set the parameter value to `code` for web server applications.
+
+| access_type
+| **Recommended** Indicates whether your application can refresh access tokens when 
+the user is not present at the browser. Valid parameters are `online` (default) 
+and `offline`. (This means whether if we get a refresh token or not)
+
+| prompt
+| **Recommended** In order for the user to have the application authorized again, 
+this also allows for subsequent attempts on the flow to **always return a refresh 
+token**, for that to happen it should be set to `consent`.
+|===
++
+The web hook will receive the parameters such as (`http://localhost:5080/api/google-auth-callback`):
++
+[cols="1,2", options="header"]
+|===
+| Parameter
+| Description
+
+| code
+| The authorization code that will be granted on behalf of the user in order to get 
+access tokens.
+
+| scope
+| A space separated list of the scopes that will be granted through this code's 
+_redeem_.
+
+| authuser
+| By default `0`
+
+| prompt
+| By default `none`, but depending on the initial Auth endpoint it can change to 
+`consent`
+|===
+
+- `https://oauth2.googleapis.com/token` Is the second endpoint, that will have the 
+auth code sent to. It should be fed query params as such:
++
+[cols="1,2", options="header"]
+|===
+| Parameter
+| Description
+
+| code
+| The auth code that will be used in the endpoint to get the tokens
+
+| client_id
+| The client ID obtained from the Cloud Console at `Clients`
+
+| client_secret
+| The client secret obtained from the Cloud Console at `Clients`
+
+| redirect_uri
+| One of the redirect URIs listed for the project for the given `client_id`
+
+| grant_type
+| As defined in the _OAuth 2.0 specification_, this field's value must be set to 
+`authorization_code`
+|===
++
+This endpoint will then return as JSON something that looks like this:
++
+```
+{
+  "access_token": "1/fFAGRNJru1FTz70BzhT3Zg",
+  "expires_in": 3920,
+  "token_type": "Bearer",
+  "scope": "https://www.googleapis.com/auth/drive.metadata.readonly https://www.googleapis.com/auth/calendar.readonly",
+  "refresh_token": "1//xEoDL4iW3cxlI7yDbSRFYNG01kVKM2C-259HOF2aQbI"
+}
+```
+It is with this information that we can then send through a `Bearer` header to 
+any of the google apis in order to get information on behalf of the user.
+
+[NOTE]
+====
+In order to get the `refresh_token`, under the normal flow (following the documentation), 
+only the first authorization from the user will return it. Any subsequent ones will 
+not (even if you send a `access_type=offline` parameter). Unless you go and revoke 
+access to the application explicitly. However there's a way to always generate it, 
+and that's with the extra parameter `prompt=consent`. This will always ask the user 
+on the Google screen to authorize the app, and on the response side of things will 
+indeed return a refresh token once we try to exchange tokens.
+
+Source: https://stackoverflow.com/questions/10827920/not-receiving-google-oauth-refresh-token[Stack Overflow]
+====
