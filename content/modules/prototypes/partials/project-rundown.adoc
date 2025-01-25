@@ -3,6 +3,7 @@ The project is pretty simple, there are 3 endpoints:
 - /api/generate-url
 - /api/google-auth-callback
 - /api/get-tokens
+- /api/get-user-data
 
 Postman can be used in order to hit them, however, due to the integration with 
 `.http` files, even at the IDE level we can hit the endpoints with no issue whatsoever. 
@@ -24,6 +25,12 @@ After we get the authentication code from Google's side, this endpoint should re
 it in order to talk to Google's API and then get back both a user token and its refresh 
 token. It receives one query parameter: `code`, this will be passed down to the Google 
 endpoint.
+/api/get-user-data::
+With the `Bearer` token, we are free to start consuming endpoints from Google, obviously 
+within what was allowed inside of the `scope` provided at the beginning of the authentication 
+flow. This will expect an `Authorization: Bearar <TOKEN>` header, said header will 
+be passed down to the respective Google endpoint in order to retrieve the user's 
+basic information.
 
 [NOTE]
 ====

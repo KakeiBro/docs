@@ -24,7 +24,8 @@ on the OAuth 2.0 client. If this doesn't match you will get a `redirect_uri_mism
 | scope
 | **Required** A space-delimited list of scopes that identify the resources that your 
 application could access on the user's behalf. These values inform the google consent 
-screen that Google displays to the user.
+screen that Google displays to the user. In order for us to hit and get user's information, 
+we should be sending `openid email profile`
 
 | response_type
 | **Required** Determines whether the Google OAuth 2.0 endpoint returns an authorization 
@@ -102,6 +103,41 @@ This endpoint will then return as JSON something that looks like this:
 ```
 It is with this information that we can then send through a `Bearer` header to 
 any of the google apis in order to get information on behalf of the user.
+
+- `https://www.googleapis.com/oauth2/v2/userinfo` Is the third endpoint, part 
+of Google APIs, this focuses on getting the user's profile information from Google, 
+it has basic data that is more than enough for us to make a record on our side. **A 
+note here:** There's v2 and v3 versions for the endpoint, depending on what version you 
+use for the authentication flow then you should follow the same version for any subsequent 
+endpoint requests. Otherwise you will be denied if you try to request a v3 endpoint 
+with credentials generated from a v2 endpoint. The returned properties will be:
++
+[cols="1,2", options="header"]
+|===
+| Property
+| Description
+
+| id
+| `string` An ID on the Google side for the specific user.
+
+| email
+| `string` The email address for the specific user.
+
+| verified_email
+| `boolean` In case the email has gone through a verification process on the Google Side.
+
+| name
+| `string` The string resulting from combining bot the `given_name` and the `family_name`.
+
+| given_name
+| `string` The first/given name of the user.
+
+| familiy_name
+| `string` The last/family name of the user.
+
+| picture
+| `string` A URL that takes to the profile picture of the user.
+|===
 
 [NOTE]
 ====
