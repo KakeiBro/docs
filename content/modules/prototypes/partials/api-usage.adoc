@@ -2,7 +2,7 @@ The base documentation used for this was:
 
 https://developers.google.com/identity/protocols/oauth2/web-server#offline[OAuth2 with Web Server]
 
-- `https://accounts.google.com/o/oauth2/v2/auth` Is the first endpoint that should be 
+- `POST https://accounts.google.com/o/oauth2/v2/auth` Is the first endpoint that should be 
 called when initializing the flow. In here there are different query params that 
 can be sent.
 +
@@ -65,7 +65,7 @@ _redeem_.
 `consent`
 |===
 
-- `https://oauth2.googleapis.com/token` Is the second endpoint, that will have the 
+- `POST https://oauth2.googleapis.com/token` Is the second endpoint, that will have the 
 auth code sent to. It should be fed query params as such:
 +
 [cols="1,2", options="header"]
@@ -104,7 +104,7 @@ This endpoint will then return as JSON something that looks like this:
 It is with this information that we can then send through a `Bearer` header to 
 any of the google apis in order to get information on behalf of the user.
 
-- `https://www.googleapis.com/oauth2/v2/userinfo` Is the third endpoint, part 
+- `GET https://www.googleapis.com/oauth2/v2/userinfo` Is the third endpoint, part 
 of Google APIs, this focuses on getting the user's profile information from Google, 
 it has basic data that is more than enough for us to make a record on our side. **A 
 note here:** There's v2 and v3 versions for the endpoint, depending on what version you 
@@ -138,8 +138,60 @@ with credentials generated from a v2 endpoint. The returned properties will be:
 | picture
 | `string` A URL that takes to the profile picture of the user.
 |===
-
++
 [NOTE]
+====
+If you try and use a an expired token, you will not get an error code, however no 
+actual information will be returned.
+====
+
+- `POST https://oauth2.googleapis.com/revoke` Is the fourth endpoint from the Google APIs, 
+this receives a request param under `token=<TOKEN>`. You don't need to send tokens nor 
+headers for this one. You can send both an access token and a refresh token, if you 
+send an access token it will also revoke its refresh in the background.
++
+[NOTE]
+====
+If you try to revoke an expired token, you will be met with an exception.
+====
+
+- `POST https://oauth2.googleapis.com/token` will be re-used for refreshing, however the 
+change in behavior will be mandated by the request parameters that are sent to establish 
+the type of flow:
++
+[cols="1,2", options="header"]
+|===
+| Parameter
+| Description
+
+| client_id
+| The Client ID that we already mentioned that is tied to Google Console.
+
+| client_secret
+| The Client Secret that's also coming from Google Console.
+
+| grant_type
+| This should be set to `refresh_token`
+
+| refresh_token
+| The actual refresh token that will be used to validate that this refresh attempt is 
+authentic.
+|===
++
+You are free to request another access token when a previous one has expired or 
+even before that, there are no rules waiting for the previous token to expire. A 
+response from the API should also look something akin to this:
++
+```
+{
+  "access_token": "1/fFAGRNJru1FTz70BzhT3Zg",
+  "expires_in": 3920,
+  "scope": "https://www.googleapis.com/auth/drive.metadata.readonly https://www.googleapis.com/auth/calendar.readonly",
+  "token_type": "Bearer"
+}
+```
+
+[IMPORTANT]
 ====
 In order to get the `refresh_token`, under the normal flow (following the documentation), 
 only the first authorization from the user will return it. Any subsequent ones will 
@@ -150,4 +202,12 @@ on the Google screen to authorize the app, and on the response side of things wi
 indeed return a refresh token once we try to exchange tokens.
 
 Source: https://stackoverflow.com/questions/10827920/not-receiving-google-oauth-refresh-token[Stack Overflow]
+====
+
+[NOTE]
+====
+Another thing worthy of note is the fact that all the `expires_in` values are measured 
+in **seconds**, and it should also be in consequence understood that the moment 
+we get back the token with the `expiry_date` attached, from that moment in time **+ 
+_n seconds_**, said token will no longer be valid.
 ====
