@@ -24,3 +24,15 @@ be mindful that this is a **_financial management system_**. It holds critical
 information in regards to a person. So we have to add an extra confirmation check 
 for the user explaining the meaning of remembering the device. **This is the pilar 
 of how the system should be understood**.
+
+== Google OAuth
+
+In order to ease login and registering operations, the system leverages Google OAuth 2. 
+Meaning that the authentication and authorization side of things in order to get user 
+meta-data will be leveraged through Google APIs.
+
+This integration consists of building URLs specifically for a `web` application, that 
+the user then interacts with, and after the flow is successful we can retrieve information 
+in order to talk to Google APIs on the user's behalf and get basic data around them, 
+both in order to create a user, but also to log him into the system without the need to 
+ask for password or user.
