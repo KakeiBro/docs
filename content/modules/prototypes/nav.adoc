@@ -1,2 +1,3 @@
 * xref:index.adoc[]
 ** xref:o-auth.adoc[]
+** xref:mfa.adoc[]
