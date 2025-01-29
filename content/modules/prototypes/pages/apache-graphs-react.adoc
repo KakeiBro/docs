@@ -1,0 +1,95 @@
+= Apache Graphs on React
+
+Source: https://echarts.apache.org/examples/en/index.html#chart-type-graphic[Apache Echarts]
+
+There's this Open Source JavaScript Visualization Library. That has tons of graphs and 
+a pretty robust documentation (although it lacks examples and more explicit statements). 
+But it looks really promising when integrating with some other Frontend Framework.
+
+== Apache Echarts API
+
+This is but an example of how a stacked bar chart could be configure:
+
+[source, javascript]
+----
+{
+    dataset: {
+        source: [
+        ['Commodity', 'Owned', 'Financed'],
+        ['Commodity 1', 4, 1],
+        ['Commodity 2', 2, 4],
+        ['Commodity 3', 3, 6],
+        ['Commodity 4', 5, 3]
+        ]
+    },
+    tooltip: {
+        trigger: 'axis',
+        axisPointer: {
+        type: 'shadow'
+        }
+    },
+    legend: {
+        data: ['Owned', 'Financed']
+    },
+    grid: {
+        left: '10%',
+        right: '0%',
+        top: '20%',
+        bottom: '20%'
+    },
+    xAxis: {
+        type: 'value'
+    },
+    yAxis: {
+        type: 'category'
+    },
+    series: [
+        {
+        type: 'bar',
+        stack: 'total',
+        label: {
+            show: true
+        }
+        },
+        {
+        type: 'bar',
+        stack: 'total',
+        label: {
+            show: true
+        }
+        }
+    ]
+}
+----
+As you can see there are tons of properties and they all hold different types of values, 
+it's depending on what type of chart we want to render that we have to configure these 
+objects. Of course, for the actual system's purpose we should have abstractions that are 
+generic and configurable up until a specific point. Only to change small details and the 
+actual dataset, but we should have baked-in patterns for the different use cases we 
+want to cover.
+
+== Project Rundown
+
+This project was created with vite, following the steps:
+
+- `pnpm create vite apache-echarts-react` (Select React > Typescript + SWC)
+- `pnpm install`
+
+After scaffolding the initial folder structure, we added the dependencies neccesary to 
+start consuming the echarts library.
+
+- `pnpm i echarts`
+
+This prototype is quite _to the point_, in the sense we simply have one component that 
+takes care of abstracting (Facade) all the logic that goes into consuming the `echarts` 
+API, it makes use of `useEffect()` to subscribe to a `resize` event that the charts emit 
+in order to recalculate the rendering and hooking of the DOM element ref with the echarts 
+element to render. It's highly extendable and can basically feed whatever the echarts 
+API has. It's also worth noting that reading up on the docs from the library will be 
+the best source to figure out how to render something we want. It's customizable to 
+a fault.
+
+There's definitely room for improvement or extension to this prototype may it be to 
+figure out the specifics on implementing a specific chart type and/or for a specific 
+use case. But for now, this is just a simply PoC on how to use the library with React 
+and with a pattern that's reliable and easy to understand.
