@@ -1,18 +1,18 @@
 = Google OAuth 2.0
 
-include::partial$google-oauth-2.adoc[]
+include::partial$o-auth/google-oauth-2.adoc[]
 
 == Google OAuth Setup
 
-include::partial$google-oauth-setup.adoc[]
+include::partial$o-auth/google-oauth-setup.adoc[]
 
 == Usage of APIs for authentication
 
-include::partial$api-usage.adoc[]
+include::partial$o-auth/api-usage.adoc[]
 
 == Project Rundown
 
-include::partial$project-rundown.adoc[]
+include::partial$o-auth/project-rundown.adoc[]
 
 === Folder Structure
 
@@ -53,4 +53,4 @@ all that's needed in order to integrate with Google Auth.
 
 === Configurations and Security
 
-include::partial$cross-cutting-concerns.adoc[]
+include::partial$o-auth/cross-cutting-concerns.adoc[]
