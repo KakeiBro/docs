@@ -1,0 +1,34 @@
+= Form Libraries for React
+
+Another really important part of the application will be the leveraging of forms in 
+order to capture data, both for persistency, but also normal flows that will require 
+searching, filtering and other similar interactions.
+
+It is due to this that this prototype is focusing entirely on seeing the capabilities 
+of two popular **Form Libraries** for React:
+
+- Formik (integrated with Yup)
+- React Hook Form
+
+This prototype has installed both of them and shows different examples of their 
+capabilities alongside the type of code that is needed to be written to get them working.
+
+== Project Rundown
+
+This project was created with vite, following the steps:
+
+- `pnpm create vite react-forms` (Select React > Typescript + SWC)
+- `pnpm install`
+
+After scaffolding the initial folder structure, we added the dependencies neccesary to 
+start consuming the echarts library.
+
+- `pnpm i formik`
+- `pnpm i react-hook-form`
+
+=== Formik
+
+=== React Hook Form
+
+== Cross Cutting Concerns
+

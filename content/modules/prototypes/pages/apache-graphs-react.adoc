@@ -89,6 +89,15 @@ API has. It's also worth noting that reading up on the docs from the library wil
 the best source to figure out how to render something we want. It's customizable to 
 a fault.
 
+- apache-echarts-react
+|-- src
+|   |-- App.tsx
+|   |-- React-ECharts.tsx
+
+It is `React-Echarts.tsx` the component to which we can send the different 
+structures that Apache Echarts will then render, and at the `App.tsx` level we simply 
+feed some input structure to render.
+
 There's definitely room for improvement or extension to this prototype may it be to 
 figure out the specifics on implementing a specific chart type and/or for a specific 
 use case. But for now, this is just a simply PoC on how to use the library with React 
