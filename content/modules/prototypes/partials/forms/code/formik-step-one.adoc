@@ -1,0 +1,48 @@
+[source, tsx]
+----
+import { useFormik } from 'formik'
+
+function FormikDemo () {
+  // Pass the useFormik() hook initial form values and a submit function that will
+
+  // be called when the form is submitted
+
+  const formik = useFormik({
+    initialValues: { <1>
+      email: ''
+    },
+
+    onSubmit: values => { <2>
+      alert(JSON.stringify(values, null, 2))
+    }
+  })
+
+  return (
+    <form onSubmit={formik.handleSubmit}> <3>
+      <label htmlFor='email'>Email Address</label>
+      <input
+        id='email'
+        name='email'
+        type='email'
+        onChange={formik.handleChange} <4>
+        value={formik.values.email}
+      />
+
+      <button type='submit'>Submit</button>
+    </form>
+  )
+}
+
+export { FormikDemo }
+----
+<1> It is through the `initialValues` property of the parameter for the `useFormik` 
+hook that we can declare the shape of the whole object the form will capture.
+<2> And it is through the `onSubmit` property we can feed a function that will run 
+the moment a submit on the form is triggered.
+<3> As you can see we can then start consuming the result from the hook in the 
+respective places.
+<4> We can drill down all the way to the property names.
++
+It is worth noting that even without some form of validation explicitly stated here, 
+Formik detects the type of the input and in this case, if we write a malformed email 
+it will show an error there specific to that rule.

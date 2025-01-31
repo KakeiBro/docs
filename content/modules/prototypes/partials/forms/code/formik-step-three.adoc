@@ -1,0 +1,11 @@
+[source, tsx]
+----
+const [values, setValues] = React.useState({})
+
+const handleChange = event => {
+  setValues(prevValues => ({
+    ...prevValues,
+    [event.target.name]: event.target.value
+  })
+}
+----

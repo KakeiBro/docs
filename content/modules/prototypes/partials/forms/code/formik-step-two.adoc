@@ -1,0 +1,66 @@
+[source, tsx]
+----
+import { useFormik } from 'formik'
+
+function FormikDemo () {
+  // Pass the useFormik() hook initial form values and a submit function that will
+
+  // be called when the form is submitted
+
+  const formik = useFormik({
+    initialValues: {
+      firstName: '',
+      lastName: '',
+      email: ''
+    },
+
+    onSubmit: values => {
+      alert(JSON.stringify(values, null, 2))
+    }
+  })
+
+  return (
+    <form onSubmit={formik.handleSubmit}>
+      <label htmlFor='firstName'>First Name</label>
+
+      <input
+        id='firstName'
+        name='firstName'
+        type='text'
+        onChange={formik.handleChange}
+        value={formik.values.firstName}
+      />
+
+      <label htmlFor='lastName'>Last Name</label>
+
+      <input
+        id='lastName'
+        name='lastName'
+        type='text'
+        onChange={formik.handleChange}
+        value={formik.values.lastName}
+      />
+
+      <label htmlFor='email'>Email Address</label>
+
+      <input
+        id='email'
+        name='email'
+        type='email'
+        onChange={formik.handleChange}
+        value={formik.values.email}
+      />
+
+      <button type='submit'>Submit</button>
+    </form>
+  )
+}
+
+export { FormikDemo }
+----
+If you look carefully, you'll notice some patterns and symmetry _forming_.
+
+1. We reuse the same exact change handler function `handleChange` for each HTML input.
+2. We pass an `id` and `name` HTML attribute that _matches_ the property we defined in 
+`initialValues`
+3. We access the field's value using the same name (`email`->`formik.values.email`)

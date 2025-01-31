@@ -28,6 +28,40 @@ start consuming the echarts library.
 
 === Formik
 
+Based on the documentation at https://formik.org/docs/overview[Formik]. 
+
+There are different ways to use Formik, (it also has an extension to Yup). You can use 
+a full component-based approach (it has its own components you can use), or you can be 
+way more programatic and focus entirely on the core functionality attached to your own 
+components (with a hook). We will see all these different "ways" to do it, however 
+the documentation is opinionated and in the end steers you towards a specific approach 
+that has been integrated with Yup plus leverages the component approach.
+
+The first iteration of a really basic Formik implementation would be:
+
+include::partial$forms/code/formik-step-one.adoc[]
+
+As a second step we will add two more fields to the form (think of it as a new requirement 
+that just came in):
+
+include::partial$forms/code/formik-step-two.adoc[]
+
+For people familiar with forms in plain React, Formik's `handleChange` works the 
+same way as you would with code like:
+
+include::partial$forms/code/formik-step-three.adoc[]
+
+[NOTE]
+====
+If we don't want for the frontend to carry validation logic and be as dumb as possible, 
+we could levarage a network call to the backend in order for all logic to be centralized 
+there. Now, this is where depending on the depth of the validation we would have 
+to make databae calls and all. But caching can ease the load on the server for simple 
+validations, then again if validations only live at memory level, we should be good. 
+But even then we could add mechanisms to avoid overflowing the service with validation 
+calls.
+====
+
 === React Hook Form
 
 == Cross Cutting Concerns
