@@ -75,6 +75,21 @@ the moment we focus an input is also taken into account to render errors.
 
 include::partial$forms/code/formik-step-four.adoc[]
 
+**Visited fields**
+
+One fault we can see right now is the fact that the validation function runs on each 
+keystroke against the _entire_ form's values, our `error` object contains _all_ 
+validation errors at any given moment. And we are currently checking if an error 
+exists and then immediately showing it to the user. It's not a good UX if the user sees 
+an error the moment the form loads, usually we'd want to wait for the user to interact 
+with the control to then show errors.
+
+Formik has a way to access a `touched` value, it will be mapped to the respective control 
+name and then be open for us to consume it. It will also be updated based on the `onBlur` 
+property the control can tie in with Formik's `handleBlur`
+
+include::partial$forms/code/formik-step-fifth.adoc[]
+
 [NOTE]
 ====
 If we don't want for the frontend to carry validation logic and be as dumb as possible, 
