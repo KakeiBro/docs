@@ -1,0 +1,106 @@
+[source, tsx]
+----
+import { useFormik } from 'formik'
+
+interface FormProps { <3>
+  firstName: string,
+  lastName: string,
+  email: string
+}
+
+// A custom validation function. This must return an object
+// which keys are symmetrical to our values/initialValues
+const validate = (values: FormProps) => { <1>
+  const errors: Partial<FormProps> = {} <2>
+
+  if (!values.firstName) {
+    errors.firstName = 'Required'
+  } else if (values.firstName.length > 15) {
+    errors.firstName = 'Must be 15 characters or less'
+  }
+
+  if (!values.lastName) {
+    errors.lastName = 'Required'
+  } else if (values.lastName.length > 20) {
+    errors.lastName = 'Must be 20 characters or less'
+  }
+
+  if (!values.email) {
+    errors.email = 'Required'
+  } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(values.email)) {
+    errors.email = 'Invalid email address'
+  }
+
+  return errors <4>
+}
+
+function FormikDemo () {
+  /// Pass the useFormik() hook initial form values, a validate function that will be called when
+  // form values change or fields are blurred, and a submit function that will
+  // be called when the form is submitted
+  const formik = useFormik({
+    initialValues: {
+      firstName: '',
+      lastName: '',
+      email: ''
+    },
+    validate, <5>
+    onSubmit: values => {
+      alert(JSON.stringify(values, null, 2))
+    }
+  })
+
+  return (
+    <form onSubmit={formik.handleSubmit}>
+      <label htmlFor='firstName'>First Name</label>
+
+      <input
+        id='firstName'
+        name='firstName'
+        type='text'
+        onChange={formik.handleChange}
+        value={formik.values.firstName}
+      />
+      {formik.errors.firstName ? <div>{formik.errors.firstName}</div> : null} <6>
+
+      <label htmlFor='lastName'>Last Name</label>
+
+      <input
+        id='lastName'
+        name='lastName'
+        type='text'
+        onChange={formik.handleChange}
+        value={formik.values.lastName}
+      />
+      {formik.errors.lastName ? <div>{formik.errors.lastName}</div> : null}
+
+      <label htmlFor='email'>Email Address</label>
+
+      <input
+        id='email'
+        name='email'
+        type='email'
+        onChange={formik.handleChange}
+        value={formik.values.email}
+      />
+      {formik.errors.email ? <div>{formik.errors.email}</div> : null}
+
+      <button type='submit'>Submit</button>
+    </form>
+  )
+}
+
+export { FormikDemo }
+----
+<1> In order to follow best practices the `values` object was typed.
+<2> The errors object will also hold the same properties as the main interface, with 
+the possibility to not have the same properties, hence the utility `Partial` class was 
+used.
+<3> This is the declaration of the interface for the shape of the form object.
+<4> By the end, we will return an `errors` object, and if it has no properties (meaning 
+no errors) then Formik will allow for the form to submit.
+<5> We are using the same name for the validation function as the property the hook 
+expects, hence we can write it in its simplified form.
+<6> And lastly, you can see how we leverage conditional rendering in order to show the 
+error message respective to the input only if the error object has an error registered 
+for the respective property name.

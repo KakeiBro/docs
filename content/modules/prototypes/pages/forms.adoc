@@ -51,6 +51,30 @@ same way as you would with code like:
 
 include::partial$forms/code/formik-step-three.adoc[]
 
+**Validation**
+
+HTML's input native properties such as `required`, `maxlength`, `minlength` 
+and `pattern` for regex are a way to validate. However HTML has its limitations, 
+e.g. it only works on browser, React Native is not viable, it's also impossible to 
+show custom error messages. And it's very janky.
+
+Formik keeps track not only of the form's `values` but also its validation and 
+error messages. To add validation with JS, we can specify a custom validation function 
+and pass it as `validate` inside of the hook. If an error exists, the custom validation 
+function should produce an `error` object with a matching shape to our `values` 
+/ `initialValues`. _Symmetry_.
+
+`formik.errors` are populated via the custom validation function. By default, Formik 
+will validate after each keystroke (change event), each input's _blur event_, as well 
+as prior to submission. The `onSubmit` function we passed to `useFormik()` will be 
+executed only if there are no errors (i.e. if our `validate` function returns `{}`).
+
+Meaning that if we type and the resulting string has an error, it will immediately show, 
+before submitting it won't allow for us to do it unless all values are valid, and 
+the moment we focus an input is also taken into account to render errors.
+
+include::partial$forms/code/formik-step-four.adoc[]
+
 [NOTE]
 ====
 If we don't want for the frontend to carry validation logic and be as dumb as possible, 
