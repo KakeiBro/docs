@@ -51,7 +51,7 @@ same way as you would with code like:
 
 include::partial$forms/code/formik-step-three.adoc[]
 
-**Validation**
+==== Validation
 
 HTML's input native properties such as `required`, `maxlength`, `minlength` 
 and `pattern` for regex are a way to validate. However HTML has its limitations, 
@@ -75,7 +75,7 @@ the moment we focus an input is also taken into account to render errors.
 
 include::partial$forms/code/formik-step-four.adoc[]
 
-**Visited fields**
+==== Visited fields
 
 One fault we can see right now is the fact that the validation function runs on each 
 keystroke against the _entire_ form's values, our `error` object contains _all_ 
@@ -89,6 +89,34 @@ name and then be open for us to consume it. It will also be updated based on the
 property the control can tie in with Formik's `handleBlur`
 
 include::partial$forms/code/formik-step-fifth.adoc[]
+
+==== Schema Validation with Yup
+
+Validation can be left up to you. You can write your own validators or use a 3rd-party 
+helper library. Lots of people using Formik prefer using **Yup** for object schema 
+validation. Yup has an API similar to `Joi` and `React PropTypes`, but it's also small 
+enough for the browser and fast enough for runtime usage.
+
+Integration with Yup is seamless, you just need to install the library and then make 
+use of the `validationSchema` property which will automatically transform Yup's validation 
+error messages into a pretty object whose keys match `values`/`initialValues`/`touched`.
+
+`pnpm i yup`
+
+To see how Yup can work, we can get rid of the `validate` function and re-write validation 
+with Yup and `validationSchema`.
+
+include::partial$forms/code/formik-step-sixth.adoc[]
+
+Yup is 100% optional. But it's recommended. Formik's core design principles are in place 
+to help you keep organized. Schemas are extremely expressive, intuitive and reusable. 
+With or without Yup it's highly advisable to share commonly used validation methods 
+across the application. This will ensure that common fields are validated consistently 
+and result in a better user experience.
+
+=== Reducing Boilerplate 
+
+**getFieldProps**
 
 [NOTE]
 ====

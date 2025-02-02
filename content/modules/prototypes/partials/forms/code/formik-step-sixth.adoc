@@ -1,0 +1,33 @@
+[source, tsx]
+----
+const formik = useFormik({
+    initialValues: {
+      firstName: '',
+      lastName: '',
+      email: ''
+    },
+    validationSchema: Yup.object({ <1>
+      firstName: Yup.string() <2>
+        .max(15, 'Must be 15 characters or less') <3>
+        .required('Required'), <4>
+
+      lastName: Yup.string()
+        .max(20, 'Must be 20 characters or less')
+        .required('Required'),
+
+      email: Yup.string()
+        .email('Invalid email address')
+        .required('Required')
+    }),
+    onSubmit: values => {
+      alert(JSON.stringify(values, null, 2))
+    }
+  })
+----
+<1> We must leverage a Yup object. You can import everything from the library by doing 
+a `import * as Yup from 'yup'`.
+<2> And inside, the object will declare the properties that should be respective to 
+the shape of the form we will map its validations to.
+<3> As you can see it follows a fluent pattern, it declares the type of value it will hold 
+and for different criteria you can declare what error message will be shown.
+<4> Even for required, you can customize the error message there.
