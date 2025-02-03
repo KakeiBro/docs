@@ -118,6 +118,28 @@ and result in a better user experience.
 
 **getFieldProps**
 
+The code so far is pretty explicit (imperative) of what it does. Defining every single 
+property `onChange` -> `handleChange`, `onBlur` -> `handleBlur`. However `useFormik()` 
+returns a helper method called `formik.getFieldProps()` to make wiring of inputs faster. 
+Given a field-level info it will return `onChange`, `onBlur`, `value` and `checked` 
+for a given field. You can then spread that on any `input`, `select` or `textarea`.
+
+include::partial$forms/code/formik-step-seventh.adoc[]
+
+**Leveraging React Context**
+
+Code is more concise, yet it still is pretty explicit. Formik comes in `React-Context`-
+powered API/components to make things even less verbose. They use React Context implicitly 
+to connect with the Parent `<Formik />` state/methods. A manual approach would work 
+like this:
+
+include::partial$forms/code/formik-manual-context-provider.adoc[]
+
+But, we don't need that, since there's a `Formik` component that comes with all of 
+that baked into it.
+
+include::partial$forms/code/formik-step-eight.adoc[]
+
 [NOTE]
 ====
 If we don't want for the frontend to carry validation logic and be as dumb as possible, 

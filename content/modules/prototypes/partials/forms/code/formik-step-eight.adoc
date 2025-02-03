@@ -1,0 +1,82 @@
+[source, tsx]
+----
+import { Formik } from 'formik'
+import * as Yup from 'yup'
+
+function FormikDemo () {
+  return (
+    <Formik
+      initialValues={{ <1>
+        firstName: '',
+        lastName: '',
+        email: ''
+      }}
+      validationSchema={Yup.object({ <2>
+        firstName: Yup.string()
+          .max(15, 'Must be 15 characters or less')
+          .required('Required'),
+
+        lastName: Yup.string()
+          .max(20, 'Must be 20 characters or less')
+          .required('Required'),
+
+        email: Yup.string().email('Invalid email address').required('Required')
+      })}
+      onSubmit={(values, { setSubmitting }) => { <3>
+        setTimeout(() => {
+          alert(JSON.stringify(values, null, 2))
+          setSubmitting(false)
+        }, 400)
+      }}
+    >
+      {formik => ( <4>
+        <form onSubmit={formik.handleSubmit}>
+          <label htmlFor='firstName'>First Name</label>
+
+          <input
+            id='firstName'
+            type='text'
+            {...formik.getFieldProps('firstName')}
+          />
+          {formik.touched.firstName && formik.errors.firstName ? (
+            <div>{formik.errors.firstName}</div>
+          ) : null}
+
+          <label htmlFor='lastName'>Last Name</label>
+
+          <input
+            id='lastName'
+            type='text'
+            {...formik.getFieldProps('lastName')}
+          />
+          {formik.touched.lastName && formik.errors.lastName ? (
+            <div>{formik.errors.lastName}</div>
+          ) : null}
+
+          <label htmlFor='email'>Email Address</label>
+
+          <input id='email' type='email' {...formik.getFieldProps('email')} />
+          {formik.touched.email && formik.errors.email ? (
+            <div>{formik.errors.email}</div>
+          ) : null}
+
+          <button type='submit'>Submit</button>
+        </form>
+      )}
+    </Formik>
+  )
+}
+
+export { FormikDemo }
+----
+<1> As you can see the component gets in its properties the same properties that 
+the hook did before, such as the initial values that gives the shape of the object.
+<2> `validationSchema` is also something you feed as a property.
+<3> A `onSubmit` property also receives a function, the function will receive as 
+a first parameter the values, and as a second parameter an object that holds properties 
+with utility functions, such as `setSubmitting()` that will update the internal 
+state of the form (in terms of if it's under submission or not)
+<4> And the children "elements" of the `Formik` component will be another function, 
+in this specific instance it's a `render prop`. A technique to send a render function to 
+a component so that it doesn't implement the rendering on his own and instead the consumer 
+sends said rendering logic. (Pretty cool)

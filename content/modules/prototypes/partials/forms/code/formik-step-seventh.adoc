@@ -1,0 +1,11 @@
+[source, tsx]
+----
+<input
+    id='firstName'
+    type='text'
+    {...formik.getFieldProps('firstName')} <1>
+/>
+----
+<1> Pretty straightforward, the pattern simply requires for you to state the `id` 
+and the `type` properties, right after that you can simply spread the fieldname result 
+for the helper function. The form will work the exact same whilst being more declarative.
