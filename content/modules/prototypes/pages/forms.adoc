@@ -26,132 +26,24 @@ start consuming the echarts library.
 - `pnpm i formik`
 - `pnpm i react-hook-form`
 
-=== Formik
+The folder structure:
 
-Based on the documentation at https://formik.org/docs/overview[Formik]. 
+```
+- react-forms
+|-- src
+|   |-- FormikDemo.tsx
+|   |-- App.tsx
+```
 
-There are different ways to use Formik, (it also has an extension to Yup). You can use 
-a full component-based approach (it has its own components you can use), or you can be 
-way more programatic and focus entirely on the core functionality attached to your own 
-components (with a hook). We will see all these different "ways" to do it, however 
-the documentation is opinionated and in the end steers you towards a specific approach 
-that has been integrated with Yup plus leverages the component approach.
-
-The first iteration of a really basic Formik implementation would be:
-
-include::partial$forms/code/formik-step-one.adoc[]
-
-As a second step we will add two more fields to the form (think of it as a new requirement 
-that just came in):
-
-include::partial$forms/code/formik-step-two.adoc[]
-
-For people familiar with forms in plain React, Formik's `handleChange` works the 
-same way as you would with code like:
-
-include::partial$forms/code/formik-step-three.adoc[]
-
-==== Validation
-
-HTML's input native properties such as `required`, `maxlength`, `minlength` 
-and `pattern` for regex are a way to validate. However HTML has its limitations, 
-e.g. it only works on browser, React Native is not viable, it's also impossible to 
-show custom error messages. And it's very janky.
-
-Formik keeps track not only of the form's `values` but also its validation and 
-error messages. To add validation with JS, we can specify a custom validation function 
-and pass it as `validate` inside of the hook. If an error exists, the custom validation 
-function should produce an `error` object with a matching shape to our `values` 
-/ `initialValues`. _Symmetry_.
-
-`formik.errors` are populated via the custom validation function. By default, Formik 
-will validate after each keystroke (change event), each input's _blur event_, as well 
-as prior to submission. The `onSubmit` function we passed to `useFormik()` will be 
-executed only if there are no errors (i.e. if our `validate` function returns `{}`).
-
-Meaning that if we type and the resulting string has an error, it will immediately show, 
-before submitting it won't allow for us to do it unless all values are valid, and 
-the moment we focus an input is also taken into account to render errors.
-
-include::partial$forms/code/formik-step-four.adoc[]
-
-==== Visited fields
-
-One fault we can see right now is the fact that the validation function runs on each 
-keystroke against the _entire_ form's values, our `error` object contains _all_ 
-validation errors at any given moment. And we are currently checking if an error 
-exists and then immediately showing it to the user. It's not a good UX if the user sees 
-an error the moment the form loads, usually we'd want to wait for the user to interact 
-with the control to then show errors.
-
-Formik has a way to access a `touched` value, it will be mapped to the respective control 
-name and then be open for us to consume it. It will also be updated based on the `onBlur` 
-property the control can tie in with Formik's `handleBlur`
-
-include::partial$forms/code/formik-step-fifth.adoc[]
-
-==== Schema Validation with Yup
-
-Validation can be left up to you. You can write your own validators or use a 3rd-party 
-helper library. Lots of people using Formik prefer using **Yup** for object schema 
-validation. Yup has an API similar to `Joi` and `React PropTypes`, but it's also small 
-enough for the browser and fast enough for runtime usage.
-
-Integration with Yup is seamless, you just need to install the library and then make 
-use of the `validationSchema` property which will automatically transform Yup's validation 
-error messages into a pretty object whose keys match `values`/`initialValues`/`touched`.
-
-`pnpm i yup`
-
-To see how Yup can work, we can get rid of the `validate` function and re-write validation 
-with Yup and `validationSchema`.
-
-include::partial$forms/code/formik-step-sixth.adoc[]
-
-Yup is 100% optional. But it's recommended. Formik's core design principles are in place 
-to help you keep organized. Schemas are extremely expressive, intuitive and reusable. 
-With or without Yup it's highly advisable to share commonly used validation methods 
-across the application. This will ensure that common fields are validated consistently 
-and result in a better user experience.
-
-=== Reducing Boilerplate 
-
-**getFieldProps**
-
-The code so far is pretty explicit (imperative) of what it does. Defining every single 
-property `onChange` -> `handleChange`, `onBlur` -> `handleBlur`. However `useFormik()` 
-returns a helper method called `formik.getFieldProps()` to make wiring of inputs faster. 
-Given a field-level info it will return `onChange`, `onBlur`, `value` and `checked` 
-for a given field. You can then spread that on any `input`, `select` or `textarea`.
-
-include::partial$forms/code/formik-step-seventh.adoc[]
-
-**Leveraging React Context**
-
-Code is more concise, yet it still is pretty explicit. Formik comes in `React-Context`-
-powered API/components to make things even less verbose. They use React Context implicitly 
-to connect with the Parent `<Formik />` state/methods. A manual approach would work 
-like this:
-
-include::partial$forms/code/formik-manual-context-provider.adoc[]
-
-But, we don't need that, since there's a `Formik` component that comes with all of 
-that baked into it.
-
-include::partial$forms/code/formik-step-eight.adoc[]
-
-[NOTE]
-====
-If we don't want for the frontend to carry validation logic and be as dumb as possible, 
-we could levarage a network call to the backend in order for all logic to be centralized 
-there. Now, this is where depending on the depth of the validation we would have 
-to make databae calls and all. But caching can ease the load on the server for simple 
-validations, then again if validations only live at memory level, we should be good. 
-But even then we could add mechanisms to avoid overflowing the service with validation 
-calls.
-====
-
-=== React Hook Form
+We have the `App` component that renders a `FormikDemo`, as the name implies it will 
+leverage all the tools that Formik provides to show a demo of how a fully setup form in 
+Formik will look and behave like.
 
 == Cross Cutting Concerns
 
+=== Formik
+
+When it comes to Formik, besides the basic tutorial rundown, it has many other examples 
+in the docs about async calls, about instant-feedback on type, API requests for 
+other field validations or calculations, besides Material UI's integrations. So it 
+covers many other use cases that will vary heavily on the requirements of the application.

@@ -1,0 +1,25 @@
+[source, tsx]
+----
+{formik => (
+    <form onSubmit={formik.handleSubmit}>
+        <label htmlFor='firstName'>First Name</label>
+        <Field name='firstName' type='text' /> <1>
+        <ErrorMessage name='firstName' /> <2>
+
+        <label htmlFor='lastName'>Last Name</label>
+        <Field name='lastName' type='text' />
+        <ErrorMessage name='lastName' />
+
+        <label htmlFor='email'>Email Address</label>
+        <Field name='email' type='text' />
+        <ErrorMessage name='email' />
+
+        <button type='submit'>Submit</button>
+    </form>
+)}
+----
+<1> The `<Field>` component by default will render an `<input>` component given that, 
+a `name` prop, will implicitly grab the respective `onChange`, `onBlur`, `value` props 
+and pass them to the element as well as any props you pass to it.
+<2> And we also can leverage an `<ErrorMessage>` component that will abstract all the 
+logic of touched, plus wiring it to the respective value and error of the form property.
