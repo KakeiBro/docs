@@ -1,1 +1,22 @@
 = React Hook Form
+
+Based on the documentation at https://react-hook-form.com/get-started[React Hook Form].
+
+React Hook Form's design and philosophy focus on user and developer experience. 
+The library aims to provide users with a smoother interaction experience by fine-tuning 
+the performance and improving accesibility. Some of the performance enhancements 
+include:
+
+- Form state subscription model through the proxy
+- Avoiding unnecessary computation
+- Isolating component re-rendering when required
+
+It aims at improving the user experience while users interact with the application .
+As for the developers, there's built-in validation closely aliged with HTML standards 
+allowing further extension with powerful validation methods and integration with 
+schema validation natively. It also has type-checked forms with the help of typescript 
+to help and guide the developer to build a robust form solution.
+
+Let's look at a bit of code first and then start breaking it down alongside the 
+usage of the different utilities the library provides:
+

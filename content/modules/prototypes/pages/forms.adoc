@@ -43,7 +43,24 @@ Formik will look and behave like.
 
 === Formik
 
-When it comes to Formik, besides the basic tutorial rundown, it has many other examples 
+In Formik's case, besides the basic tutorial rundown, it has many other examples 
 in the docs about async calls, about instant-feedback on type, API requests for 
 other field validations or calculations, besides Material UI's integrations. So it 
 covers many other use cases that will vary heavily on the requirements of the application.
+
+=== React Hook Form
+
+React Hook Form adheres to HTML standards for validation, besides accounting for 
+performance and integration with multiple validation libraries (besides Yup). It 
+also integrates heavily with typescript and allows for a true type safe dev experience.
+
+=== Extra Notes
+
+There's definitely way more options when it comes to form libraries, each with their 
+own quirks, pros/cons. A good video to get a really high level of them would be:
+
+video::HK7X_uqf7YQ[youtube, opts="modest", width=640, height=480]
+
+When it comes to integrations and performance **React Hook Form** shows that it makes 
+great usage of these concerns. (Besides being actively maintained and being the most 
+popular form library).
