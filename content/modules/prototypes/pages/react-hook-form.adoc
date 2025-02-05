@@ -20,3 +20,4 @@ to help and guide the developer to build a robust form solution.
 Let's look at a bit of code first and then start breaking it down alongside the 
 usage of the different utilities the library provides:
 
+include::partial$forms/code/rhf-step-one.adoc[]
