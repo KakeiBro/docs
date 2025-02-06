@@ -1,0 +1,69 @@
+[source, tsx]
+----
+import { SubmitHandler, useForm } from 'react-hook-form'
+
+interface Inputs {
+  example: string
+  exampleRequired: string
+}
+
+function ReactHookFormDemo () {
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors }
+  } = = useForm<Inputs>({
+    defaultValues: { <5>
+      example: 'defaultExample',
+      exampleRequired: 'exampleRequired'
+    }
+  })
+  const onSubmit: SubmitHandler<Inputs> = console.log
+
+  console.log(errors) <1>
+  console.log('watch', watch('example')) <7>
+  return (
+    /* "handleSubmit" will validate your inputs before invoking "onSubmit" */
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <h1>React Hook Form</h1>
+      {/* register your input into the hook by invoking the "register" function */}
+      <input defaultValue='test' {...register('example')} />
+
+      {/* include validation with required or other standard HTML validation rules */}
+      <input
+        {...register('exampleRequired', { <6>
+          required: 'This is required', <2>
+          minLength: { value: 4, message: 'Min length is 4' } <3>
+        })}
+      />
+      {/* errors will return when field validation fails  */}
+      {errors.exampleRequired && <span>{errors.exampleRequired.message}</span>} <4>
+
+      <input type='submit' />
+    </form>
+  )
+}
+
+export { ReactHookFormDemo }
+
+----
+<1> We can also watch all the errors through the `errors` property the hook returns, 
+and this is a simple object with all errors associated with the registered fields of 
+the form.
+<2> We can just put a validation value in a key-value pair fashion <string, boolean>, 
+however if we want to customize the error message we can provide instead of a `boolean` 
+a string.
+<3> For validations that require extra inputs we can provide an object that will hold 
+the neccesary parameters plus the error message.
+<4> We will have the error object if it has errors with the name of the field and then 
+inside of it a `message` property alongside other meta-fashion data.
+<5> We can easily provide `initialValues` to the hook so that the form's state is 
+initialized respectively.
+<6> And due to the hard typescript integration of the library, if we try to register 
+a field with a name that's not part of our type/interface we will get a linter error.
+<7> And one last bit of info, this `watch` function is great if we want to react to 
+changes produced on a specific form field, if we don't provide a name we will subscribe 
+to the entire form's state change. However if we have specific cases, we can carve them 
+out and apply logic that way. This will trigger only a re-render on specific fields and 
+won't have to run the whole form rendering.

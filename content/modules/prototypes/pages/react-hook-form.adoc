@@ -21,3 +21,40 @@ Let's look at a bit of code first and then start breaking it down alongside the
 usage of the different utilities the library provides:
 
 include::partial$forms/code/rhf-step-one.adoc[]
+
+When it comes to validations its API is quite simple and extendable nevertheless:
+
+include::partial$forms/code/rhf-step-two.adoc[]
+
+And, we can rest assured that the way the form re-renders is optimal, it doesn't render 
+the whole thing, it follows React principles in order to render itself correctly.
+
+== Validation
+
+React Hook Form makes form validation easy by aligning with the existing 
+https://developer.mozilla.org/en-US/docs/Learn_web_development/Extensions/Forms/Form_validation[HTML standard 
+for form validation]
+
+The list of supported validation rules are:
+
+- required
+- min
+- max
+- minLength
+- maxLength
+- pattern
+- validate
+
+`validate` is pretty interesting since you can feed your custom validation logic to it:
+
+include::partial$forms/code/rhf-validations-one.adoc[]
+
+Besides feeding custom validations, if we need to account for more complex cases such 
+as two fields being validated between one and other, we can make use of the `submit` 
+function we ourselves feed into `handleSubmit`:
+
+include::partial$forms/code/rhf-validations-complex.adoc[]
+
+However, using **schema validations** with stuff like `Yup` or `Zod` is a much cleaner 
+and scalable approach:
+

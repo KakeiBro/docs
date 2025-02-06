@@ -1,0 +1,62 @@
+[source, tsx]
+----
+import React from "react";
+import { useForm } from "react-hook-form";
+
+function App() {
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setError, <1>
+    clearErrors, <2>
+    formState: { errors },
+  } = useForm();
+
+  const onSubmit = (data) => {
+    if (data.password !== data.confirmPassword) {
+      setError("confirmPassword", { <3>
+        type: "manual", <4>
+        message: "Passwords do not match",
+      });
+    } else {
+      console.log(data);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)}>
+      {/* Password Field */}
+      <input
+        type="password"
+        placeholder="Password"
+        {...register("password", {
+          required: "Password is required",
+        })}
+      />
+      {errors.password && <p>{errors.password.message}</p>}
+
+      {/* Confirm Password Field */}
+      <input
+        type="password"
+        placeholder="Confirm Password"
+        {...register("confirmPassword", {
+          required: "Confirm Password is required",
+        })}
+      />
+      {errors.confirmPassword && <p>{errors.confirmPassword.message}</p>}
+
+      <button type="submit">Submit</button>
+    </form>
+  );
+}
+
+export default App;
+----
+<1> We can leverage `setErrors` from the hook itself to raise an error manually.
+<2> We can then leverage `clearErrors` in case we have to manually get rid of an error, 
+this is only necessary in case we register a custom error for the form, not associated 
+with any registered input. Otherwise it will never go away.
+<3> We can register for a specific field a custom error `manual` in this case, and 
+associated with it we can then put the `message`. Notice how we are doing the validation 
+at the `onSubmit` function, it's there that if we find an issue we leverage `setErrors`.

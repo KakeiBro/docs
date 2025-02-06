@@ -1,0 +1,46 @@
+[source, tsx]
+----
+import React from "react";
+import { useForm } from "react-hook-form";
+
+function App() {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
+
+  const onSubmit = (data) => {
+    console.log(data);
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)}>
+      {/* Password Field */}
+      <input
+        type="password"
+        placeholder="Password"
+        {...register("password", {
+          required: "Password is required",
+          validate: { <1>
+            minLength: (value) => <2>
+              value.length >= 8 || "Password must be at least 8 characters", <3>
+            containsNumber: (value) =>
+              /\d/.test(value) || "Password must contain a number",
+          },
+        })}
+      />
+      {errors.password && <p>{errors.password.message}</p>}
+
+      <button type="submit">Submit</button>
+    </form>
+  );
+}
+
+export default App;
+----
+<1> Passing down to a `validate` property we can feed an object.
+<2> This object can then have different validation error names, this should always follow 
+the key-value pair pattern, in a <string, Function> manner.
+<3> A pretty concise way of returning the error, in case the check passes we return a 
+boolean (true), if not, due to `or` we will return the error message.

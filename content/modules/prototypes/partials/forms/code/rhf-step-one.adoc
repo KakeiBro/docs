@@ -9,14 +9,14 @@ interface Inputs { <1>
 
 function ReactHookFormDemo () {
   const {
-    register,
-    handleSubmit,
+    register, <3>
+    handleSubmit, <4>
     watch,
     formState: { errors }
-  } = useForm<Inputs>()
+  } = useForm<Inputs>() <2>
   const onSubmit: SubmitHandler<Inputs> = console.log
 
-  console.log(watch('example'))
+  console.log(watch('example')) <5>
   return (
     /* "handleSubmit" will validate your inputs before invoking "onSubmit" */
     <form onSubmit={handleSubmit(onSubmit)}>
@@ -25,7 +25,7 @@ function ReactHookFormDemo () {
       <input defaultValue='test' {...register('example')} />
 
       {/* include validation with required or other standard HTML validation rules */}
-      <input {...register('exampleRequired', { required: true })} />
+      <input {...register('exampleRequired', { required: true })} /> <6>
       {/* errors will return when field validation fails  */}
       {errors.exampleRequired && <span>This field is required</span>}
 
@@ -37,6 +37,19 @@ function ReactHookFormDemo () {
 export { ReactHookFormDemo }
 
 ----
-<1> The docs example makes usage of `type`, each of them function for specific use cases, 
-but in most common ones they are interchangable. Now, that doesn't mean you should't 
-have a clear defined coding style.
+<1> The docs example makes usage of `type`, both `interface` and `type` function 
+for specific use cases, but in most common ones they are interchangable. Now, 
+that doesn't mean you should't have a clear defined coding style.
+<2> This hook will take care of exposing to us the different functions and properties 
+that React Hook Form uses.
+<3> `register` is the function in charge of registering individual controls into the 
+hook's state. It will inject into the control all the things neccesary to hook it up 
+to the form's validations, errors, state changes and so on.
+<4> As an intermediary function we have `handleSubmit` that takes care of running validations 
+against the state before trying to execute `onSubmit` which is the function to react 
+to the form's submission.
+<5> One clear example of how React Hook Form leverages typescript to the fullest, is 
+that in functions such as `watch` it will detect the actual valid values based on the 
+shape that we provided the form.
+<6> And as you can see the way to inject validations can easily be done through an 
+a second argument object provided to the `register` function.
