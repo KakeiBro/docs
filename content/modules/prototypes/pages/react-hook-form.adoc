@@ -1,5 +1,7 @@
 = React Hook Form
 
+== General Usage
+
 Based on the documentation at https://react-hook-form.com/get-started[React Hook Form].
 
 React Hook Form's design and philosophy focus on user and developer experience. 
@@ -58,3 +60,14 @@ include::partial$forms/code/rhf-validations-complex.adoc[]
 However, using **schema validations** with stuff like `Yup` or `Zod` is a much cleaner 
 and scalable approach:
 
+First, you have to install the resolver for the respective schema validator (in our case 
+we will leverage yup): `pnpm i @hookform/resolvers yup`.
+
+include::partial$forms/code/rhf-validations-schema.adoc[]
+
+== Integrating with custom and library components
+
+If you have an existing form we can integrate seamlessly with the correct functions 
+and signatures:
+
+include::partial$forms/code/rhf-integrating-custom.adoc[]

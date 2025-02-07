@@ -1,0 +1,91 @@
+[source, tsx]
+----
+import { Path, useForm, UseFormRegister, SubmitHandler } from "react-hook-form"
+
+interface IFormValues {
+  "First Name": string <1>
+  Age: number
+}
+
+type InputProps = {
+  label: Path<IFormValues> <2>
+  register: UseFormRegister<IFormValues> <3>
+  required: boolean
+}
+
+// The following component is an example of your existing Input Component
+const Input = ({ label, register, required }: InputProps) => (
+  <>
+    <label>{label}</label>
+    <input {...register(label, { required })} /> <4>
+  </>
+)
+
+// you can use React.forwardRef to pass the ref too
+const Select = React.forwardRef< <5>
+  HTMLSelectElement, <11>
+  { label: string } & ReturnType<UseFormRegister<IFormValues>> <6>
+>(({ onChange, onBlur, name, label }, ref) => (
+  <>
+    <label>{label}</label>
+    <select name={name} ref={ref} onChange={onChange} onBlur={onBlur}> <7>
+      <option value="20">20</option>
+      <option value="30">30</option>
+    </select>
+  </>
+))
+
+const App = () => {
+  const { register, handleSubmit } = useForm<IFormValues>() <8>
+
+  const onSubmit: SubmitHandler<IFormValues> = (data) => {
+    alert(JSON.stringify(data))
+  }
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <Input label="First Name" register={register} required /> <9>
+      <Select label="Age" {...register("Age")} /> <10>
+      <input type="submit" />
+    </form>
+  )
+}
+----
+<1> You can technically declare property names with spaces if you enclose the name 
+with quotes (but this is not really recommended).
+<2> `Path` is a utility type that ensures that the value under this property should 
+correspond to one of the _keys_ from `IFormValues`. This prevents typos and ensures 
+type safety when referencing form fields.
+<3> `register` is the function provided by `useForm()` to register inputs with React 
+Hook form, `UseFormRegister` ensures that the `register` function is correctly typed 
+for the fields in `IFormValues`. And so, when trying to call `register("First Name")` 
+in this inner component, Typescript will prevent invalid field names.
+<4> As you can see we are basically passing the `register` function in order to then 
+call it in the inner component's rendering next to the `input` component.
+<5> This wrapper allows a component to receive a `ref` and pass it to a child element. Because we are 
+spreading the `register()` upstream, we would have `{ ref, name, onChange, onBlur }` 
+to be sent to the component. However React, by design, doesn't allow for refs to be passed down 
+directly, _unless we are explicit about it_. Hence we have to use `forwardRef` to state 
+our intentions clear, it's with forms that we normally would make use of this resource.
+<6> `ReturnType` is a utility function that allows for us to easily resolve at runtime 
+the type for a specific field by simply feeding the signature of a function or other 
+type of member to it. In this instance we are simply trying to get a type for the return 
+of what would be a `register` for the `IFormValues` shape.
+<7> As you can see we are literally assigning each property that comes from up-stream 
+to the inner `select`. This ties into how we are registering the component at <10>
+<8> Never forget to type the `useForm` that's how you unlock intellisense and typescript's 
+magic.
+<9> See how we simply pass down the `register` from the hook, and we also declare 
+the `required` prop right after it. (At this level the register is but another property 
+that we leverage inside the component).
+<10> Another way to code the wiring to React Hook Form, we can simply spread the register 
+function in the custom component itself, it's downstream that we have coded everything so 
+that it wires up correctly.
+<11> And so we also have to type the type of ref that the child component will receive, 
+in our case it should be an `HTMLSelect`, that's what will be saved in the `ref` 
+parameter of the function. That way we can connect our `select` with the ref that 
+the register function will attempt at resolving. It's all about being organized, 
+explicit, and knowing how everything interacts.
++
+It's up to you which approach to use, but again, you should have a clear **_code guideline_ **
+set and you should stick to it.

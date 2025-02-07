@@ -1,0 +1,68 @@
+[source, tsx]
+----
+import { yupResolver } from '@hookform/resolvers/yup'
+import { SubmitHandler, useForm } from 'react-hook-form'
+import * as yup from 'yup'
+
+interface Inputs {
+  example: string
+  exampleRequired: number
+}
+
+const schema = yup.object({ <1>
+  example: yup.string().required('Required'),
+  exampleRequired: yup
+    .number()
+    .typeError('Must be a number') <3>
+    .positive()
+    .integer()
+    .required('Required')
+})
+
+function ReactHookFormDemo () {
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors }
+  } = useForm<Inputs>({
+    defaultValues: {
+      example: 'defaultExample',
+      exampleRequired: 123
+    },
+    resolver: yupResolver(schema) <2>
+  })
+  const onSubmit: SubmitHandler<Inputs> = console.log
+
+  console.log(errors)
+  console.log('watch', watch('example'))
+  return (
+    /* "handleSubmit" will validate your inputs before invoking "onSubmit" */
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <h1>React Hook Form</h1>
+      {/* register your input into the hook by invoking the "register" function */}
+      <input defaultValue='test' {...register('example')} />
+
+      {/* include validation with required or other standard HTML validation rules */}
+      <input {...register('exampleRequired')} /> <4>
+      {/* errors will return when field validation fails  */}
+      {errors.exampleRequired && <span>{errors.exampleRequired.message}</span>}
+
+      <input type='submit' />
+    </form>
+  )
+}
+
+export { ReactHookFormDemo }
+
+----
+<1> We can create the schema through yup's functions and have it stored in a variable.
+<2> We can then feed into the `resolver` property of the hook our schema.
+<3> One small comment when it comes to yup's API, when enforcing a type you might get 
+a really verbose error, you can use `typeError` right after the type validator in 
+order to customize the message (you can't just feed a parameter unfortunately).
+<4> And we can then get rid of the validation object inside of `register` since we have 
+offloaded that concern to the schema validator.
++
+Another really interesting feature of React Hook Form is the fact that if a field has 
+an error, it will immediately focus that field which has an error.
