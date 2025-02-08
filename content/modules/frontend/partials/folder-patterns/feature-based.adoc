@@ -1,0 +1,39 @@
+This pattern organizes files by **feature** or **domain**, grouping all related components, 
+hooks, styles and logic together.
+
+Folder Structure:
+
+```
+src/
+├── features/
+│   ├── auth/
+│   │   ├── components/
+│   │   ├── hooks/
+│   │   ├── services/
+│   │   ├── slices/ (for Redux)
+│   │   └── index.js
+│   ├── dashboard/
+│   │   ├── components/
+│   │   ├── hooks/
+│   │   ├── services/
+│   │   └── index.js
+│   └── profile/
+│       ├── components/
+│       ├── hooks/
+│       ├── services/
+│       └── index.js
+├── shared/
+│   ├── components/ (reusable UI components)
+│   ├── hooks/ (reusable hooks)
+│   ├── utils/ (utility functions)
+│   └── styles/ (global styles)
+├── App.js
+├── index.js
+└── store.js (if using Redux)
+```
+
+When to Use:
+
+- Medium to large applications.
+- Teams working on different features independently.
+- Applications with clear domain boundaries.

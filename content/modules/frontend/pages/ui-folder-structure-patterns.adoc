@@ -1,0 +1,34 @@
+= UI Folder Structure Patterns
+
+Organizing a React application's folder structure is crucial for maintainability, 
+scalability, and collaboration.
+
+== Architecture-tied
+
+Based on the vast amount of architecture patterns that exist, we can start combining 
+concepts together to come up with different folder structure patterns, the most used ones 
+in **React** applications could be:
+
+=== Feature-Based Folder Structure
+
+include::partial$folder-patterns/feature-based.adoc[]
+
+=== Layered Architecture (Presentation, Business Logic, Data)
+
+
+=== Atomic Design Pattern
+
+
+=== Modular Architecture
+
+
+=== Flat Structure
+
+
+=== Ducks Pattern (for Redux)
+
+
+=== Domain-Driven Design (DDD)
+
+
+== KakeiBro's Choice

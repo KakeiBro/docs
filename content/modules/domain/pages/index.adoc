@@ -24,7 +24,7 @@ Most important libraries:
 - Vite
 - Vitest
 - Emotion (compiled css styles in order to UT css behaviors)
-- Forms (TBD)
+- Forms (React Hook Form)
 - Apache Graphs
 
 === .NET Modulith

@@ -1,1 +1,8 @@
 = Backend
+
+As mentioned in the xref:domain:index.adoc[domain] section of the docs, we are powering 
+the backend with **.NET Core 9**. It will be organized in a Modular Monolith manner, 
+powered through **Redis** as its backing service. 
+
+On top of that we will have it orchestrated with Docker (docker-compose), all living 
+in its own repository. 

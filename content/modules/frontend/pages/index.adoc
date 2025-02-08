@@ -1,0 +1,18 @@
+= Frontend
+
+As mentioned in the xref:domain:index.adoc[domain] section of the docs the web app 
+will be built with **React**. But just like any other application we need to choose 
+an architectural pattern to base our folder structure and workflow around.
+
+[NOTE]
+====
+For further information to the chosen architecture pattern please head to 
+xref:ui-folder-structure-patterns.adoc[]
+====
+
+== Setup
+
+The project was generated with `vite`. Using the command:
+
+- `pnpm create vite@latest kakeibro-web` (Select React > Typescript + SWC)
+- `pnpm install`

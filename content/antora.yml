@@ -10,3 +10,4 @@ nav:
 - modules/domain/nav.adoc
 - modules/prototypes/nav.adoc
 - modules/backend/nav.adoc
+- modules/frontend/nav.adoc
