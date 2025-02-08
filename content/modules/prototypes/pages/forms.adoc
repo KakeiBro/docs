@@ -52,7 +52,12 @@ covers many other use cases that will vary heavily on the requirements of the ap
 
 React Hook Form adheres to HTML standards for validation, besides accounting for 
 performance and integration with multiple validation libraries (besides Yup). It 
-also integrates heavily with typescript and allows for a true type safe dev experience.
+also integrates heavily with typescript and allows for a true type safe dev 
+experience.
+
+Besides this, the library has tons of utility classes that help with type-safety, 
+alongside integration with both other UI component libraries, even services that can 
+then hit API endpoints. And it also integrates nicely with **React Native**.
 
 === Extra Notes
 

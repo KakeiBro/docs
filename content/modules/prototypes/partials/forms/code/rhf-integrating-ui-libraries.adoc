@@ -1,0 +1,65 @@
+[source, tsx]
+----
+import Select from "react-select"
+import { useForm, Controller, SubmitHandler } from "react-hook-form"
+import { Input } from "@material-ui/core"
+
+interface IFormInput {
+  firstName: string
+  lastName: string
+  iceCreamType: { label: string; value: string }
+}
+
+const App = () => {
+  const { control, handleSubmit } = useForm({ <1>
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      iceCreamType: {},
+    },
+  })
+
+  const onSubmit: SubmitHandler<IFormInput> = (data) => {
+    console.log(data)
+  }
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <Controller <2>
+        name="firstName"
+        control={control} <3>
+        render={({ field }) => <Input {...field} />} <4>
+      />
+      <Controller
+        name="iceCreamType"
+        control={control}
+        render={({ field }) => (
+          <Select
+            {...field}
+            options={[
+              { value: "chocolate", label: "Chocolate" },
+              { value: "strawberry", label: "Strawberry" },
+              { value: "vanilla", label: "Vanilla" },
+            ]}
+          />
+        )}
+      />
+      <input type="submit" />
+    </form>
+  )
+}
+----
+<1> The hook will return a `control` function that we can then leverage to hook into 
+library components.
+<2> We can use the `Controller` component to sort of act as a wrapper, he will take 
+care of registering the respective field on whatever input field our library component 
+encapsulates.
+<3> We have to feed the `control` property to the `Controller` component so that it 
+wires up correctly.
+<4> And lastly we have to send a render prop under `render`, this will take care of 
+rendering the library component and also hook into its input correctly.
++
+You can use both the **Component API** and the **Hook API** however you see fit, 
+again _stick to one method_. And most of the time it will be based around what is 
+possible with the tools you get. If things work a certain way, and you can make your 
+code explicit, yet clean enough for it to keep working. Follow that line.

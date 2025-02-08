@@ -67,7 +67,17 @@ include::partial$forms/code/rhf-validations-schema.adoc[]
 
 == Integrating with custom and library components
 
+=== Existing Custom Form
+
 If you have an existing form we can integrate seamlessly with the correct functions 
 and signatures:
 
 include::partial$forms/code/rhf-integrating-custom.adoc[]
+
+=== Third-party Forms
+
+You should be able to integrate with UI component libraries just fine, if by any 
+chance the component does not expose the `ref` you can leverage the `Controller` 
+input, he will take care of the registration process.
+
+include::partial$forms/code/rhf-integrating-ui-libraries.adoc[]
