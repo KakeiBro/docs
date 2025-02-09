@@ -15,20 +15,102 @@ include::partial$folder-patterns/feature-based.adoc[]
 
 === Layered Architecture (Presentation, Business Logic, Data)
 
+include::partial$folder-patterns/layered-architecture.adoc[]
 
 === Atomic Design Pattern
 
+include::partial$folder-patterns/atomic-design.adoc[]
 
 === Modular Architecture
 
+include::partial$folder-patterns/modular-architecture.adoc[]
 
 === Flat Structure
 
+include::partial$folder-patterns/flat-structure.adoc[]
 
 === Ducks Pattern (for Redux)
 
+include::partial$folder-patterns/ducks-pattern.adoc[]
 
 === Domain-Driven Design (DDD)
 
+include::partial$folder-patterns/ddd.adoc[]
+
+**Choosing the Right Pattern**
+
+- **Small Apps:** Use a Flat Structure or Atomic Design
+- **Medium Apps:** Use **Feature-Based** or **Modular Architecture**
+- **Large Apps:** Use **Layered Architecture**, **Domain-Driven Design**, or 
+**Ducks Pattern** (if using Redux)
+
+The best pattern will depend on the team's preference, the size of the application, 
+and the complexity of the business logic.
 
 == KakeiBro's Choice
+
+When it comes to designing a folder structure that is based on an architectural pattern, 
+we definitely have to look at it from multiple perspectives, whilst a checklist might 
+be enough for some, it's through experience and a _feel_ for how the project would evolve 
+and the type of people that it will require that we need to make **_as close of a good choice_ **
+as we can. Nothing's off the table technically, but this choice should be based on factual 
+and time-aware data (meaning knowing about the current state of both the dev team and 
+the tech stack).
+
+One other concept that was used in order to make the decision was of **Screaming Architecture**. 
+The pattern itself focuses on the idea that the code bases we build, extend and maintain 
+should constantly be giving queues to the developers about the _Domain_ of the software. 
+We add extra buffers and overhead to the development process when trying to separate 
+our units of code into technical concerns (BI, Repository, etc). Whereas the way to 
+really understand and keep a mental map of the software, is by connecting all of the 
+technical implementations **with the actual problem the software solves.**. It is by 
+doing this that we add more intuitive and extendable choices for a developer.
+
+This obviously has to be architected with intent, and not just following like _dogma_, 
+every software is different, and tons of variables come into play when coming up with 
+the solution, _that not always is the best_, but we have to get our foot off the starting 
+line somehow. We should follow **iterative principles** and always aim at making the 
+software better if an issue with a design choice manifests itself.
+
+With all of that said, the architecture that was chosen for the UI project was 
+**Feature Based**. Meaning that we will follow an idea like so:
+
+```
+src/
+├── features/
+│   ├── auth/
+│   │   ├── components/
+│   │   ├── hooks/
+│   │   ├── services/
+│   │   ├── store/ (for Redux)
+│   │   └── index.ts
+│   ├── users/
+│   │   ├── components/
+│   │   ├── hooks/
+│   │   ├── services/
+│   │   └── index.ts
+│   ├── finances/
+│   │   ├── components/
+│   │   ├── hooks/
+│   │   ├── services/
+│   │   └── index.ts
+|   └── intelligence/
+│       ├── components/
+│       ├── hooks/
+│       ├── services/
+│       └── index.ts
+├── shared/
+│   ├── components/ (reusable UI components)
+│   ├── hooks/ (reusable hooks)
+│   ├── utils/ (utility functions)
+│   └── styles/ (global styles)
+├── App.tsx
+└── index.ts
+```
+
+If you notice, the **features** have the same names as the _modules_ that are present 
+in our xref:domain:index.adoc[Domain Driven Design] page.
+
+We should always follow this design line, and stick to it, if a use case ever arises 
+that we are not sure where it fits, a discussion on how to extend the initial spec should 
+take place.

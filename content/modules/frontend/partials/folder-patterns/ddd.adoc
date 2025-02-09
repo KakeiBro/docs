@@ -1,0 +1,35 @@
+This pattern recognizes the application based on **domains** or **bounded contexts**, 
+aligning the folder structure with the business domain.
+
+```
+src/
+├── domains/
+│   ├── user/
+│   │   ├── components/
+│   │   ├── hooks/
+│   │   ├── services/
+│   │   └── models/
+│   ├── product/
+│   │   ├── components/
+│   │   ├── hooks/
+│   │   ├── services/
+│   │   └── models/
+│   └── order/
+│       ├── components/
+│       ├── hooks/
+│       ├── services/
+│       └── models/
+├── shared/
+│   ├── components/ (reusable UI components)
+│   ├── hooks/ (reusable hooks)
+│   ├── utils/ (utility functions)
+│   └── styles/ (global styles)
+├── App.js
+├── index.js
+└── routes.js (if using React Router)
+```
+
+When to Use:
+
+- Large applications with complex business domains
+- Teams that want to align the codebase with business requirements

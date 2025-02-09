@@ -1,0 +1,40 @@
+This pattern organizes the application into **modules**, where each module itself 
+is a self-contained unit with its own components, styles, and logic.
+
+```
+src/
+├── modules/
+│   ├── auth/
+│   │   ├── components/
+│   │   ├── hooks/
+│   │   ├── styles/
+│   │   └── index.js
+│   ├── dashboard/
+│   │   ├── components/
+│   │   ├── hooks/
+│   │   ├── styles/
+│   │   └── index.js
+│   └── profile/
+│       ├── components/
+│       ├── hooks/
+│       ├── styles/
+│       └── index.js
+├── shared/
+│   ├── components/ (reusable UI components)
+│   ├── hooks/ (reusable hooks)
+│   ├── utils/ (utility functions)
+│   └── styles/ (global styles)
+├── App.js
+├── index.js
+└── routes.js (if using React Router)
+```
+
+_Note:_ If you are familiar with Angular, the framework adopts this architecture 
+pattern full stop.
+
+When to Use:
+
+- Large applications with multiple independent modules
+- Teams working on different modules simultaneously
+- Applications that need to be easily extensible
+

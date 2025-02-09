@@ -1,0 +1,30 @@
+This pattern organizes Redux-related logic (actions, reducers, and types) into a 
+single file per feature/module.
+
+```
+src/
+├── features/
+│   ├── auth/
+│   │   ├── authSlice.js (Redux slice)
+│   │   └── authActions.js (optional)
+│   ├── dashboard/
+│   │   ├── dashboardSlice.js
+│   │   └── dashboardActions.js
+│   └── profile/
+│       ├── profileSlice.js
+│       └── profileActions.js
+├── shared/
+│   ├── components/ (reusable UI components)
+│   ├── hooks/ (reusable hooks)
+│   ├── utils/ (utility functions)
+│   └── styles/ (global styles)
+├── App.js
+├── index.js
+└── store.js (Redux store configuration)
+```
+
+When to Use:
+
+- Applications using Redux for state management
+- Teams that want to colocate Redus logic with features
+

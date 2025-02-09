@@ -1,0 +1,27 @@
+This pattern separates the application into **layers** based on their responsibilities: 
+presentation, business logic, and data.
+
+```
+src/
+├── presentation/
+│   ├── components/ (UI components)
+│   ├── pages/ (page-level components)
+│   └── layouts/ (layout components)
+├── business/
+│   ├── hooks/ (custom hooks for business logic)
+│   ├── services/ (API calls, business logic)
+│   └── store/ (Redux or Zustand store)
+├── data/
+│   ├── api/ (API configuration and endpoints)
+│   ├── models/ (data models or interfaces)
+│   └── utils/ (data-related utilities)
+├── App.js
+├── index.js
+└── routes.js (if using React Router)
+```
+
+When to use:
+
+- Applications with complex business logic
+- Teams that want clear separation of concerns
+- Applications that need to scale with a focus on maintainability

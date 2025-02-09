@@ -1,0 +1,23 @@
+This pattern organizes component based on their complexity and reusability, following 
+the **Atomic Design** methodology.
+
+```
+src/
+├── atoms/ (smallest components, e.g., buttons, inputs)
+├── molecules/ (combinations of atoms, e.g., search bar)
+├── organisms/ (combinations of molecules, e.g., header, footer)
+├── templates/ (page layouts)
+├── pages/ (page-level components)
+├── hooks/ (custom hooks)
+├── utils/ (utility functions)
+├── styles/ (global styles)
+├── App.js
+├── index.js
+└── routes.js (if using React Router)
+```
+
+When to Use:
+
+- Applications with a strong focus on reusable components
+- Design systems or component libraries
+- Teams that want to enforce a consistent design language

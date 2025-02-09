@@ -1,0 +1,21 @@
+This pattern keeps the folder structure simple and flat, with minimal nesting
+
+```
+src/
+├── components/ (all components)
+├── hooks/ (custom hooks)
+├── pages/ (page-level components)
+├── services/ (API calls)
+├── styles/ (global styles)
+├── utils/ (utility functions)
+├── App.js
+├── index.js
+└── routes.js (if using React Router)
+```
+
+When to Use:
+
+- Small applications or prototypes
+- Teams that prefer simplicity and minimal structure
+- Applications with limited complexity
+
