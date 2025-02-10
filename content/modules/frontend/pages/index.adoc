@@ -16,3 +16,101 @@ The project was generated with `vite`. Using the command:
 
 - `pnpm create vite@latest kakeibro-web` (Select React > Typescript + SWC)
 - `pnpm install`
+
+=== Formatter and Linter
+
+Because `vite` follows best practices and modern web development practices, it 
+already comes with eslint integrated, and its auto-generated `README` also has instructions 
+on how to extend the configuration so that we get a richer dev experience with the linter.
+
+The formatter will be `prettier`, however, we are not going to leverage multiple 
+libraries running on their own, mostly because there are conflicts with eslint most of 
+the time, however, due to this fact, eslint has a specific plugin that helps bridging 
+its own rules with prettier (plus leveraging the package on its backend). Hence we 
+will install eslint's prettier integration:
+
+```
+pnpm i --D eslint-plugin-prettier eslint-config-prettier
+pnpm i --D --E prettier
+```
+Just so that we stick to one prettier version without it dragging into new versions that 
+might break our project we use `--save-exact` or `--E`. And because all of these libraries 
+are solely for dev purposes we will install them as dev dependencies `--save-dev` or `-D`
+
+Once this is done it's advisable to set your IDE to use ESLint as its default formatter, 
+(as we mentioned before, with the prettier plugin it will leverage prettier as the 
+code formatter on the backend).
+
+image::vs-code-eslint-formatter.jpg[]
+
+[.text-center]
+_Figure 1._ VS Code Example
+
+In case there are other plugins such as prettier, standardjs, etc installed it is 
+advisable to have them disabled on the project's workspace due to our philosophy of 
+leveraging all of these tools as **packages** and through configuration files that 
+allow for all of the setup to be transferable across all developers, we don't want for 
+IDE plugins with their own set of rules to interfere. The only plugin that should be 
+leveraged to get intellisense, code fixes, and other things through the IDE's plugin 
+reading our config files and packages should be **ESLint**
+
+image::vs-code-disabled-example.jpg[]
+
+[.text-center]
+_Figure 2._ VS Code Extensions Disabled for Workspace
+
+[NOTE]
+====
+In the case of VS Code, the moment we establish configurations for the workspace 
+such as the default formatter a `.vscode` folder will be created with all of this 
+in mind. _COMMIT THIS FOLDER_. So that any other developer that opens up the folder 
+with VS Code it will automatically pick up on the setup.
+====
+
+This project specifically works with ESLint's **_Flat Config_** configuration. Which 
+is the new ESLint way of configuring things, and so, the plugin on the IDE should be 
+set to follow this:
+
+image::eslint-config.jpg[]
+
+[.text-center]
+_Figure 3._ ESLint Flat Config
+
+[IMPORTANT]
+====
+It's worth noting that both `eslint` and `prettier` are more catered as their own 
+tools that run on the command line and take care of highlighting errors and fixing 
+them accordingly, with that in mind, we can always head to their github repositories 
+in order to read about what you can do with them. But for our specific use case, we 
+want to use them to so that we can format things according to **one** code line, and 
+so that the IDE also picks up on rules that are being inflicted so that the developer is 
+moved towards coding with the specific guidelines
+====
+
+With that in mind, the `settings.json` that's at `.vscode` should look something like 
+this:
+
+[source, json]
+----
+{
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": { <1>
+        "source.fixAll.eslint": "explicit" <2>
+    },
+    "eslint.useFlatConfig": true,
+}
+----
+<1> This is key, we are sort of configuring a _macro_ that when hitting the Save key 
+on the IDE we are running "something".
+<2> In our case we want to run `eslint` and fix all errors that it might encounter, 
+it used to be `true`, but there's a warning stating that it will be deprecated for the 
+`explicit` value.
+
+Once that's configured everytime we hit `Save`, then eslint (integrated with prettier) 
+should run and fix as much errors and warnings it might highlight (and of course follow 
+any prettier rules that are also enforced).
+
+Here's the breakdown of the configurations that were setup:
+
+include::partial$code/flat-config.adoc[]
