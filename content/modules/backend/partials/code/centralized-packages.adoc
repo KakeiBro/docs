@@ -1,0 +1,16 @@
+[source, xml]
+----
+<Project>
+    <PropertyGroup>
+        <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally> <1>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.6.0.109712"/> <2>
+        <PackageVersion Include="StyleCop.Analyzers" Version="1.2.0-beta.556"/>
+    </ItemGroup>
+</Project>
+----
+<1> We have to set this setting so that all projects of the solution will refer to the 
+package versions declared in this `props` file.
+<2> And the way to add the packages that will be exposed to projects is pretty straightforward, 
+we will simply reference them as we would in a normal `.csproj` file

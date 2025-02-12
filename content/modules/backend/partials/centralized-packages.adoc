@@ -1,0 +1,16 @@
+== Centralized NuGet packages
+
+Following the same idea at <<Centralized Build Props>> we can also use a file 
+called `Directory.Packages.props`. It is at this file that we can then declare 
+all sorts of NuGet packages that we want to be centralized, this 
+brings us the benefit of having one version for all projects in one file, instead of 
+having to go into each project and managing versions on their own. Now this should be 
+definitely used with foresight, since there are use cases the definitely will not benefit 
+from this at all.
+
+include::partial$code/centralized-packages.adoc[]
+
+And now, if we want to reference the packages and have them available, we can simply 
+declare them in any project file as such:
+
+include::partial$code/centralized-packages-project.adoc[]

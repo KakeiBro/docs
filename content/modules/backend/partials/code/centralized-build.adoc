@@ -1,0 +1,23 @@
+[source, xml]
+----
+<Project>
+    <PropertyGroup>
+        <!--Default Project Setttings--> <1>
+        <TargetFramework>net9.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+
+        <!--Static Analyzers Settings-->
+        <AnalysisLevel>latest</AnalysisLevel> <2>
+        <AnalysisMode>All</AnalysisMode>
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors>
+        <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    </PropertyGroup>
+</Project>
+----
+<1> When building a project, all these properties wil be applied to all projects of 
+the solution.
+<2> And also, when running a build on a project, we will have all these settings for 
+static analyzers warnings to be painted as errors.

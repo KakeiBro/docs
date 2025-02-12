@@ -1,0 +1,172 @@
+== Static Code Analyzer and Coding Conventions
+
+A common issue when working in teams is to enforce consistent coding styles whilst 
+also maintaining a high level of code quality.
+
+One tool we have at our disposal is an `.editorconfig` file. Inside of this file you 
+can setup coding styling rules you want to be enforced for a whole solution. (This is 
+if you save the file as a Solution Item). Now, if you are using `Rider` things might 
+be a bit different, however its support for the `.editorconfig` file is great, it will 
+highlight if you are setting some rule that's not supported and even give you suggestions 
+to be available values, this is all fed through documentation and up to date syntax:
+
+- https://www.jetbrains.com/help/rider/Using_EditorConfig.html#in_solution[Rider .editorconfig]
+- https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/code-style-rule-options[.NET Code Analysis]
+
+[NOTE]
+====
+Unlike the xref:frontend:index.adoc#formatter-and-linter[Frontend], we should not be 
+comitting `.vs/` nor `.idea/` folders, since these are **IDE-specific settings** and 
+**user-specific configurations** that are not relevant to the project itself and can 
+cause issues for other developers or build systems.
+====
+
+However, besides just having this conventions file, we can install NuGet packages as well:
+
+- StyleCop.Analyzers
+- SonarAnalyzer.CSharp
+
+Having both of the packages installed might seem illogical, but there's a clear 
+separation of concerns for both of these packages.
+
+=== StyleCop.Analyzers
+
+This NuGet package focuses on **C# coding style and formatting rules (e.g., spacing, 
+naming conventions, indentation)**. Based on **Microsoft's C# coding guidelines** it 
+helps maintaining a consistent code style across the team.
+
+_Example Rule:_ Requires XML documentation comments for public members.
+
+=== SonarAnalyzer.CSharp
+
+This static code analyzer focuses on **code quality, maintainability, and security**. 
+Meaning that it will provide _static analysis_ to detect issues like **code smells, 
+bugs, and vulnerabilities.**
+
+It is often paired with SonarQube or SonarCloud for continous code quality monitoring, 
+however these services are paid, so bear that in mind. (An extra layer into the process 
+with direct budgeting impact).
+
+_Example Rule:_ Detects potential null reference exceptions or inefficient LINQ queries.
+
+=== Code Styling and Code Quality
+
+We will use both of the tools to enforce both _style_ and a _deeper static code analysis_, 
+the aim of the project (and the team) is to have **consistent formatting** alongside 
+**quality/security insights**.
+
+It's true that this robustness should be aimed at **large-scale projects**, however, 
+even in small teams and environments this can be setup and set a good precedent for 
+further projects that are built with the foresight of making the dev process mroe agile 
+yet with more quality.
+
+=== Packages and Rules Setup
+
+At the root of the solution we have and `.editorconfig` file, this file will be picked 
+up by the IDE and will start enforcing all the rules that are stated there as we 
+go through code. By reading documentation laid out at <<Static Code Analyzer and Coding Conventions>> 
+we can extend and fine-tune the rules to our liking.
+
+With that in mind, the `.editorconfig` file should be understood as different layers to 
+setup warnings and errors we might want to enforce on the whole codebase, this can have 
+multiple type of rules turned off/on. At the beggining of the file we have general usage 
+rules setout (indent style, tab_width, pascal_casing, others). And by the end we can 
+have different sections for different analyzers' rules:
+
+- StyleCop.Analyzers (**prefix:** SA)
+- SonarAnalyzers.CSharp (**prefix:** S)
+- NET.CodeAnalyzers (**prefix:** CA)
+- Visual Studio.Analyzers (**prefix:** IDE)
+
+As the project is being developed, there might be rules or things we do not like, 
+so we can configure them to our liking at this file and the specific rule number.
+
+With this in mind, the second step of how to start enforcing code quality, is to 
+change the warnings that might start showing up with the analyzers as errors. (Why?) 
+Because we want for any coding convention infraction to be treated as an error and 
+stop the build from happening, this can even go further into CI/CD pipelines; the 
+moment someone pushes a change that breaks coding guidelines, the CI/CD pipeline 
+will fail immediately.
+
+The way to enforce this would take place normally at a `.csproj` file:
+
+[#project-file]
+include::partial$code/analysis-errors.adoc[]
+
+And this is fine, but depending on the size of the project (solution) having to configure 
+this in every single project is cumbersome rather than useful. Luckily we have extensions 
+on the framework and IDE levels that help centralize these types of cross-cutting concerns. 
+
+Hence, there's a xref:net-modulith.adoc#centralized-build-props[Directory.Build.props] 
+file at the root of the solution, this is an `xml` file that will take care of 
+setting up the enforcement of specific settings at a solution level. Think of it 
+as a super-layer that gets applied to **all solution's projects**. When it comes to our 
+code quality concerns, the same settings that would be applied to a 
+<<project-file, csproj file>> will now be stated there.
+
+=== NuGet Packages
+
+As it was mentioned before, we will be installing **StyleCop.Analyzers** alongside 
+**SonarAnalyzer.CSharp**, that's pretty straightforward, however, since we want for 
+this to be centralized, we will have to configure them in a specific way so that they 
+get installed in all projects:
+
+include::partial$code/analyzers-central-packages.adoc[]
+
+For further information in regards to how packages are being centrally managed, 
+you can head down to xref:net-modulith.adoc#centralized-nuget-packages[Directory.Packages.props].
+
+=== Shaping rules to one's liking
+
+And so, once we have installed the static analyzers and setup and wired a project 
+to be using centralized build props alongside centralized package managing. We will 
+definitely start getting errors immediately. Some rules might overlap between analyzers 
+and perhaps some rules that they enforce might not be to our liking, and so we can start 
+customizing those rules to our liking. The `.editorconfig` file will be the place to 
+setup all these things.
+
+As mentioned in <<Static Code Analyzer and Coding Conventions>>, we will add specific 
+rules for the code style of the project, but it's also in here that we can add overrides 
+to ignore some analyzer errors:
+
+```
+# StyleCop.Analyzers (SA...)
+dotnet_diagnostic.SA1649.severity = none
+dotnet_diagnostic.SA1600.severity = none
+dotnet_diagnostic.SA1400.severity = none
+dotnet_diagnostic.SA1101.severity = none
+dotnet_diagnostic.SA1633.severity = none
+dotnet_diagnostic.SA0001.severity = none
+
+# SonarAnalyzers.CSharp (S...)
+dotnet_diagnostic.S3903.severity = none
+
+# NET.CodeAnalyzers (CA...)
+dotnet_diagnostic.CA2007.severity = none
+dotnet_diagnostic.CA5394.severity = none
+
+# Visual Studio.Analyzers (IDE...)
+```
+
+By the end, we can separate the different rules we are ignoring by which analyzer is 
+it that it's generating the rule, this also keeps it documented for other developers 
+to see the rules that were skipped. To read more on them and the reasoning behind them 
+you can google each rule ID and read up on the specific documentation for them.
+
+It's also worth noting that some IDE's (such as Rider) might detect the settings 
+in `.editorconfig` as invalid or with warnings. This is expected and in the end the IDE 
+will stil pick up on the overrides as it should, by running the project we should be 
+getting errors as expected and overrides for specific ones should also be taken 
+into consideration.
+
+[NOTE]
+====
+Whilst these rules might become a bit annoying at first, reading 
+up on the reason for them to exist in the first place is a great opportunity to deepen 
+the developers knowledge, and it should always be leveraged in a way that makes the code 
+the developer makes of higher quality.
+
+In the end, it should be discussed and documented with facts and logic when a rule will end 
+up being ignored. Once should always aim at using as much as he can from tools and 
+recommendations, but also think for themselves.
+====

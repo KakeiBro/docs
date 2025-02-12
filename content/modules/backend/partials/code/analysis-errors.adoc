@@ -1,0 +1,16 @@
+[source, xml]
+----
+<PropertyGroup>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <AnalysisMode>All</AnalysisMode>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors> <1>
+    <CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors> <2>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild> <3>
+</PropertyGroup>
+----
+<1> The moment some IDE analyzer picks up on a rule infraction, it will no longer just show 
+as a warning, but as an error.
+<2> And the moment a static analyzer picks up on some warning, it will immediately be 
+treated as an error.
+<3> Lastly, we want for the build to fail the moment some code smell makes its way into 
+the codebase.

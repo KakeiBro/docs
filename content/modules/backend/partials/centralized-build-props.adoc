@@ -1,0 +1,10 @@
+== Centralized Build Props
+
+Whilst there's certainly patterns that involve having a _shared_ project that holds 
+references to both NuGets and General Use classes for a whole solution. We can also 
+leverage another type of pattern. And this involves making use of a `Directory.build.props` 
+file. Files such as this one can abstract away centralized configurations both for build 
+processes (separating concerns such as static analyzer warnings and errors), and 
+other cross cutting concerns such as NuGet package versioning.
+
+include::partial$code/centralized-build.adoc[]
