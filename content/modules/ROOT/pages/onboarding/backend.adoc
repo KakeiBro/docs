@@ -1,0 +1,34 @@
+= .NET Solution
+
+Straight out the gate, we have to make sure we have xref:onboarding/index.adoc[Cake] installed, 
+this is neccesary in order to set the project correctly before starting development. 
+(Git Hooks, etc).
+
+[#bootstrap-scripts]
+So once you have https://github.com/KakeiBro/kakeibro-api[cloned] the repository, 
+head to the root of the repository and run `./setup-cake.ps1` if you are on Windows 
+or `./setup-cake.sh` if you are on Linux.
+
+This will do a couple of things:
+
+* Since .NET Core is cross-platform, our setup should also aim at being that way, 
+hence we are leveraging **Cake** for scripting that's running on `dotnet` instead of 
+some OS-dependent CLI.
+* Following tutorials such as https://cakebuild.net/docs/getting-started/setting-up-a-new-scripting-project[Setting up a new scripting project] 
+and https://cakebuild.net/docs/running-builds/runners/dotnet-tool#bootstrapping-for.net-tool[Bootstraping Cake], 
+we have setup the <<bootstrap-scripts, bootstrap scripts>> at the root of the repository, 
+and inside of the `Kakeibro.API` solution folder we have a `build.cake` file present, besides 
+a **tool manifest** at `.config`. 
++
+We first ensure that cake is installed and once it is, we run it and it'll then go 
+and look for `build.cake` and run all of that code there.
+** _NOTE:_ Any extensions needed for this automation step can be done with all of the 
+concepts that have been laid out.
+* The Cake script is configured in order to copy the hooks that are at `git-hooks` 
+to the repository's `.git/hooks` folder. Nothing inside of `.git` is committed to VC. 
+Hence this intermediary step takes place so that as an initial setup, cake takes care of 
+cleaning, building and testing the freshly cloned solution, and it then sets up hooks 
+for the dev. **No manual invervention needed.**
+** And of course, if you are **extending the hooks** for whatever reason, you should edit 
+the **hook files that are being tracked** and then by **running Cake** they will immediately 
+be copied to `.git/hooks` and the changes to the hooks should now be available to you.

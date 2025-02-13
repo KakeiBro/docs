@@ -1,0 +1,41 @@
+= Onboarding
+
+In order to run all projects and solutions that constitute KakeiBro as a whole, we 
+need to have installed different tools in our system.
+
+== Philosophy
+
+Being software a constantly changing and evolving industry, we should always aim at 
+updating both our tools and technologies, on top of our overall knowledge. Hence tools 
+and neccesary programs should be kept up to date following both **STS and LTS release 
+lifecycles**. Since the stack is based around **.NET, Node and Redis**. We should 
+always be mindful of their lifecycles:
+
+- https://dotnet.microsoft.com/en-us/platform/support/policy/dotnet-core[Dotnet Core Releases]
+- https://nodejs.org/en/about/previous-releases[Node Releases]
+- https://www.versio.io/product-release-end-of-life-eol-Redis-Redis.html[Redis]
+
+The main reason as to always stay up to date is for **security** reasons, but also 
+due to the fact that **new features** are always welcome, specially if they make previous 
+problems that we had experienced or are currently experiencing **way easier to solve**.
+
+== Neccesary Tools
+
+* https://git-scm.com/downloads[Git]
+* https://dotnet.microsoft.com/en-us/download/dotnet/9.0[.NET 9 Runtime and SDK]
+* https://github.com/nvm-sh/nvm[nvm], (windows variant: https://github.com/coreybutler/nvm-windows[nvm-windows])
+** https://nodejs.org/en/download[Node ^20.9.0]
+* https://docs.docker.com/engine/install/ubuntu/[Docker] (on Windows you will have to leverage https://learn.microsoft.com/en-us/windows/wsl/tutorials/wsl-containers[WSL and Docker Desktop])
+* https://code.visualstudio.com/download[Visual Studio Code], (or its truly FOSS fork https://vscodium.com/[VSCodium])
+** **IMPORTANT:** It's highly advisable to use this IDE since the project setup has been catered 
+towards a workstation with this specific IDE.
+** Other options: https://neovim.io/[Neovim], https://www.jetbrains.com/webstorm/[WebStorm]
+* https://www.jetbrains.com/rider/download/#section=windows[JetBrains Rider]
+** **IMPORTANT:** Highly recommended IDE for a seamless and rich development experience.
+** https://visualstudio.microsoft.com/downloads/[Visual Studio 2022]
+*** It's recommended to have this installed just in case an error or some really obscure 
+functionality should be leveraged when it comes to working with the project. (A quick 
+jump into it, running and getting out type of flow).
+* https://cakebuild.net/docs/getting-started/setting-up-a-new-scripting-project[Cake]
+** **_NOTE:_** You don't have to manually install it, since there's a xref:onboarding/backend.adoc[_script_] 
+file at the root of the repository that will take care of installing it.

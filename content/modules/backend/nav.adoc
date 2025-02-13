@@ -1,2 +1,3 @@
 * xref:index.adoc[]
+** xref:git-hooks.adoc[]
 ** xref:net-modulith.adoc[]

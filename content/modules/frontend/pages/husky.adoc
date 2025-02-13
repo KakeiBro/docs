@@ -1,0 +1,57 @@
+= Husky Setup
+
+Husky is a https://typicode.github.io/husky/[tool] in charge of policing git commits 
+and/or pushes, before comitting anything to version control, before even saving a commit 
+it can run linting, formatting, and other type of logic, that in case it fails it 
+will short-circuit the process.
+
+Husky is installed as a node package:
+
+- `pnpm add --save-dev husky`
+
+And due to the nature of our setup we have to setup husky in a specific way so that 
+it makes use of the parent folder's `.git` whilst being inside of a folder one level 
+below: (https://typicode.github.io/husky/how-to.html#project-not-in-git-root-directory[reference]).
+
+After adding husky we can try and run `npx husky init`. However this will fail since 
+it doesn't find the `.git` folder at our React App folder, hence we have to set it 
+up manually.
+
+[source, json]
+----
+"scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview",
+    "prepare": "cd .. && husky kakeibro-web/.husky" <1>
+  },
+----
+<1> The `prepare` script will be created already, however you have to configure it 
+so that we go to the `.git` folder level. And then apply husky from the `.husky` 
+folder at the app folder level.
+
+Right after this, the `pre-commit` hook should be configured as follows:
+
+```
+cd kakeibro-web
+pnpm lint
+```
+
+Once that's done, by running a `pnpm run prepare`, inside of the `.husky/` folder 
+necessary files that hook into git and add the logic will be auto-generated. Right 
+after those files are generated every time we try to commit something, all the logic 
+in the hooks under `.husky/` should run and stop us from comitting things that are not up to 
+snuff.
+
+Now, this is setup for **a setup installation**, the power of having setup husky in 
+a `prepare` script is that next time someone runs a `pnpm install` **this script will 
+run as well** and **it will have husky setup for that specific workstation**. This 
+is great, since developers will not have to worry about this setup whatsoever.
+
+The main reasons as to why husky is so great is:
+
+- One-time setup, open for extensions.
+- Eases up the onboarding project, since any new workstation that wants to run the project 
+will have the pre-commit and hooks already configured after a `pnpm install`. We leverage 
+node and the module to take care of all the grunt work (_seamless_).

@@ -1,2 +1,3 @@
 * xref:index.adoc[]
+** xref:husky.adoc[]
 ** xref:ui-folder-structure-patterns.adoc[]
