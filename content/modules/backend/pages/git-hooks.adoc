@@ -1,9 +1,9 @@
 = Git Hooks
 
 Whilst xref:frontend:husky.adoc[in the Frontend] we are leveraging **Husky**, we are 
-not really leveraging `node` in the frontend, this is entirely a .NET Solution. And so, 
+not really leveraging `node` in the backend, this is entirely a .NET Solution. And so, 
 we won't leverage that specific tool. In its place we will leverage **Git Hooks**, 
-husky is a wrapper around git hooks by the end of the day.
+_Husky_ is a wrapper around git hooks by the end of the day.
 
 Whilst `husky` helps bridging the gap between UNIX and Windows workstations, we have to 
 setup a bit further when using raw _Git Hooks_ since depending on the OS the commands 
@@ -15,6 +15,12 @@ This is the order of steps used to setup the hooks:
 . You can test if the hooks are working as intended by running `git commit --amend --no-edit` 
 followed then by `git push --force` (you could also just roll-back if you don't want 
 to push anything).
+
+[NOTE]
+====
+Make sure you have run the xref:ROOT:onboarding/index.adoc[Onboarding] first, otherwise 
+none of the things stated further will work as intended.
+====
 
 == Windows Setup
 

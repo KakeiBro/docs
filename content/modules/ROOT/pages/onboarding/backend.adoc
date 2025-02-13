@@ -1,8 +1,8 @@
 = .NET Solution
 
-Straight out the gate, we have to make sure we have xref:onboarding/index.adoc[Cake] installed, 
-this is neccesary in order to set the project correctly before starting development. 
-(Git Hooks, etc).
+Straight out the gate, we have to make sure we have xref:onboarding/index.adoc#neccesary-tools[Cake] 
+installed, this is neccesary in order to set the project correctly before starting 
+development. (Git Hooks, etc).
 
 [#bootstrap-scripts]
 So once you have https://github.com/KakeiBro/kakeibro-api[cloned] the repository, 
