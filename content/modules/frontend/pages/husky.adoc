@@ -55,3 +55,65 @@ The main reasons as to why husky is so great is:
 - Eases up the onboarding project, since any new workstation that wants to run the project 
 will have the pre-commit and hooks already configured after a `pnpm install`. We leverage 
 node and the module to take care of all the grunt work (_seamless_).
+
+== About Husky's Hooks
+
+Unlike the xref:backend:git-hooks.adoc[Backend Hooks] approach, we will simplify things 
+a bit by leveraging **Node**. And so, all hooks that are under `.husky/*` in theory 
+are expecting to run on a https://typicode.github.io/husky/how-to.html#non-shell-hooks[POSIX compliant CLI] 
+however, due to our cross-platform requirement, we are going to put all the logic behind 
+a javascript file and we are going to run it with `Node`.
+
+And so the raw hook files should just reference the respective `.js` file, e.g:
+
+```
+cd kakeibro-web
+node .husky/pre-commit.js
+```
+
+Just as normal git hooks, the starting path will always be the root repository where 
+`.git` is at. But it's here where things can get a bit different than the raw git hooks approach.
+
+First of all, we are leveraging **pnpm**, so everything is catered to how that specific tool works. Since 
+we will be running on `node`, we get access to `pnpm`, however, it's through the leveraging of its 
+https://pnpm.io/pnpm-cli#commands[fallback configuration] that we can simply register scripts at `package.json` 
+and then try to run them by inputting something like `pnpm <script-name>`. 
+Looking at the `.js` files that are next to the husky hooks, we will see how we are by the 
+most part making usage of those scripts. Except for the one specific check that will be explained 
+in a moment.
+
+The `pre-commit.js` hook script takes care of:
+
+* Running `ESLint` (it will not auto-fix the errors, developers will be forced to take notice of this and hopefully 
+learn from it).
+** **HINT:** Since `prettier` is installed, the command can be run to take care of stragglers.
+* Running `tsc and vite build` to make sure nothing in the solution is broken.
+* Running **_custom node logic_** to scan all files in the project and pick up on any `console.log` or 
+`debugger` statements and fail if it does find them. A way to do it with a script and "easier" would be by 
+using `grep`, but since **Windows** is not POSIX compliant, it doesn't have `grep` installed by default and 
+this accounts for that possible error case.
+
+The `pre-push.js` hook script takes care of:
+
+* Running `ESLint` (it will not auto-fix the errors, developers will be forced to take notice of this and hopefully 
+learn from it).
+** **HINT:** Since `prettier` is installed, the command can be run to take care of stragglers.
+* Running `tsc and vite build` to make sure nothing in the solution is broken.
+* Running a check for possible **outdated packages**, this follows the idea of the _backend hooks_ behavior, in the 
+sense that it has been configured to not fail, (this would fail if it does find it), it will only be a 
+warning, and hopefully a point when pushing for a developer to take notice that some packages might be 
+getting left behind on the release lifecycle.
+* Running **_custom node logic_** to scan all files in the project and pick up on any `console.log` or 
+`debugger` statements and fail if it does find them. A way to do it with a script and "easier" would be by 
+using `grep`, but since **Windows** is not POSIX compliant, it doesn't have `grep` installed by default and 
+this accounts for that possible error case.
+
+[IMPORTANT]
+====
+The difference between the amount of operations each stage has has been configured with intent. 
+Whilst simply comitting we shouldn't have to disrupt the developer experience as much since changes might 
+get overwritten later, and the _flow state_ might end up taking a hit. However, before trying to push 
+something to version control we will run as many checks as we can so that we are not pushing bad code 
+that could end up breaking the build. **_However_**, the amount of time it takes for the frontend hooks 
+to run is way shorter than the ones at the **backend** side, hence the differences in here are not as many.
+====

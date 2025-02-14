@@ -22,6 +22,78 @@ Make sure you have run the xref:ROOT:onboarding/index.adoc[Onboarding] first, ot
 none of the things stated further will work as intended.
 ====
 
+[IMPORTANT]
+====
+Git hooks can insert themselves in different stages of the commit lifecycle, we are 
+_at least for the time being_ leveraging `pre-commit` and `pre-push`, which before letting us actually 
+save the commit to VC it will police our changes.
+====
+
+The **pre-commit** hook we have at the `git-hooks` folder of the repository is **cross-platform**, 
+it will run both on **_Windows and Linux_**, depending on the OS it will then execute either 
+`pre-commit.sh` or `pre-commit.ps1`.
+
+The **pre-push** hook we have at the `git-hooks` folder is also cross-platform and will 
+execute the respective script based on the OS.
+
+[NOTE]
+====
+It's worth noting that the moment a hook runs, its executing path will be the root path at 
+which we have the `.git` folder. Meaning that based on that starting point all the logic 
+we set in place should be built accordingly.
+====
+
 == Windows Setup
 
+All logic specific to Windows, will make use of **powershell**, so any commands specific 
+to that CLI are present in here.
+
+The `pre-commit.ps1` script takes care of doing the following tasks:
+
+* Checking code format (according to conventions)
+* Building the solution
+* Running all tests
+
+The `pre-push.ps1` script takes care of doing the following tasks:
+
+* Checking code format (according to conventions)
+* Building the solution
+* Running all tests
+* Running a check for possibly outdated packages
+** _NOTE:_ This will never fail, the command only lists out its findings, a good 
+still to let people know as they work that something might need an update.
+* Running migrations (**TBD**: _This requires for Entity Framework to be installed and 
+setup up in a specific project(s)_)
+* Running a check on possible vulnerable packages
+
+[IMPORTANT]
+====
+The difference between the amount of operations each stage has has been configured with intent. 
+Whilst simply comitting we shouldn't have to disrupt the developer experience as much since changes might 
+get overwritten later, and the _flow state_ might end up taking a hit. However, before trying to push 
+something to version control we will run as many checks as we can so that we are not pushing bad code 
+that could end up breaking the build.
+====
+
 == Linux Setup
+
+All logic specific to Linux, will make use of **bash**, so any commands specific 
+to that CLI are present in here.
+
+The `pre-commit.sh` script takes care of doing the following tasks:
+
+* Checking code format (according to conventions)
+* Building the solution
+* Running all tests
+
+The `pre-push.sh` script takes care of doing the following tasks:
+
+* Checking code format (according to conventions)
+* Building the solution
+* Running all tests
+* Running a check for possibly outdated packages
+** _NOTE:_ This will never fail, the command only lists out its findings, a good 
+still to let people know as they work that something might need an update.
+* Running migrations (**TBD**: _This requires for Entity Framework to be installed and 
+setup up in a specific project(s)_)
+* Running a check on possible vulnerable packages

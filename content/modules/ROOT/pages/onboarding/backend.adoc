@@ -6,8 +6,8 @@ development. (Git Hooks, etc).
 
 [#bootstrap-scripts]
 So once you have https://github.com/KakeiBro/kakeibro-api[cloned] the repository, 
-head to the root of the repository and run `./setup-cake.ps1` if you are on Windows 
-or `./setup-cake.sh` if you are on Linux.
+head to the root of the repository and run `./cake-setup.ps1` if you are on Windows 
+or `./cake-setup.sh` if you are on Linux.
 
 This will do a couple of things:
 
