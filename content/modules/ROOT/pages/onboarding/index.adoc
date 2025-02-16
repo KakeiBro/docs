@@ -17,7 +17,10 @@ always be mindful of their lifecycles:
 
 The main reason as to always stay up to date is for **security** reasons, but also 
 due to the fact that **new features** are always welcome, specially if they make previous 
-problems that we had experienced or are currently experiencing **way easier to solve**.
+problems that we had experienced or are currently experiencing **way easier to solve**. 
+
+_Note:_ As per Node's release docs, prod apps should only use **_Active LTS_** 
+or **_Maintenance LTS_** releases.
 
 == Neccesary Tools
 

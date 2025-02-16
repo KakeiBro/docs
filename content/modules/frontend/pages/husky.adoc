@@ -82,6 +82,8 @@ Looking at the `.js` files that are next to the husky hooks, we will see how we 
 most part making usage of those scripts. Except for the one specific check that will be explained 
 in a moment.
 
+=== Pre-Commit Script
+
 The `pre-commit.js` hook script takes care of:
 
 * Running `ESLint` (it will not auto-fix the errors, developers will be forced to take notice of this and hopefully 
@@ -91,7 +93,9 @@ learn from it).
 * Running **_custom node logic_** to scan all files in the project and pick up on any `console.log` or 
 `debugger` statements and fail if it does find them. A way to do it with a script and "easier" would be by 
 using `grep`, but since **Windows** is not POSIX compliant, it doesn't have `grep` installed by default and 
-this accounts for that possible error case.
+this accounts for that possible error case. 
+
+=== Pre=Push Script
 
 The `pre-push.js` hook script takes care of:
 
@@ -107,6 +111,14 @@ getting left behind on the release lifecycle.
 `debugger` statements and fail if it does find them. A way to do it with a script and "easier" would be by 
 using `grep`, but since **Windows** is not POSIX compliant, it doesn't have `grep` installed by default and 
 this accounts for that possible error case.
+* Running a script to **check for outdated packages** we have, _if any new version is found its default 
+behavior is to fail_. Updating node packages sometimes might be really disruptive, hence we don't want 
+to just update for the sake of updating, hence this will fail silently, whilst still 
+printing about the new versions found to the developer to be mindful about them.
+* Running a script to **check for packages with vulnerabilities**, this is way more important 
+than just outdated packages, so this will fail if something is found and the dev team should 
+put efforts immediately to update the package (alongside all possible errors that might show due to said 
+update).
 
 [IMPORTANT]
 ====
