@@ -74,8 +74,8 @@ After the `app` user convention it was later published a new convention, hence w
 don't have to use `USER app` but `USER $APP_UID`. https://github.com/dotnet/dotnet-docker/issues/4506[Reference].
 ====
 
-It's also worth noting that with xref:net-modulith#centralized-nuget-packages[] `Dockerfile`s 
-have to have some additions to the default structure:
+It's also worth noting that with xref:net-modulith#centralized-nuget-packages[Centralized Package Management]. 
+`Dockerfile`s have to have some additions to the default structure:
 
 ```
 # This stage is used to build the service project
@@ -104,9 +104,9 @@ make use of the _Artifact Registry_ and the _Cloud Run_ services in order to hav
 docker images hosted plus spinning them up on demand (cold starts will be assumed).
 
 After creating an _Artifact Registry_ repository, (in our case it is called _kakeibro-api_), 
-we can then copy its URL (e.g: us-east1-docker.pkg.dev/kakeibro/kakeibro-api/{image-name}), 
-and with that you can tag an existing image you have on your local machine `docker tag kakeibro-api {URL}`. 
-And after that you can push the image by doing a `docker push {URL}`. All images that 
+we can then copy its URL (e.g: us-east1-docker.pkg.dev/kakeibro/kakeibro-api/<image-name>), 
+and with that you can tag an existing image you have on your local machine `docker tag kakeibro-api <URL>`. 
+And after that you can push the image by doing a `docker push <URL>`. All images that 
 are under that repository will be pushed.
 
 It is after an image is present in a registry that we can switch to _Cloud Run_ and then 
@@ -138,7 +138,7 @@ replication.
 ====
 When trying to construct the URL to push the image, at the beginning you will have an 
 empty repository folder, you need to then add a last segment for the name of the file that will 
-be the image. E.g: <region-server>/kakeibro/{kakeibro-api}. The last _kakeibro-api_ 
+be the image. E.g: <region-server>/kakeibro/<kakeibro-api>. The last _kakeibro-api_ 
 is the name of the actual image file. If you don't add the last segment you will get an 
 error.
 ====
