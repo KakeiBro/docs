@@ -43,3 +43,4 @@ jump into it, running and getting out type of flow).
 * https://cakebuild.net/docs/getting-started/setting-up-a-new-scripting-project[Cake]
 ** **_NOTE:_** You don't have to manually install it, since there's a xref:onboarding/backend.adoc[_script_] 
 file at the root of the repository that will take care of installing it.
+* https://cloud.google.com/sdk/docs/install[gcloud CLI]

@@ -143,8 +143,8 @@ is the name of the actual image file. If you don't add the last segment you will
 error.
 ====
 
-Now pushing will not work unless you are logged into GCloud, you need the **GCloud CLI 
-tool** installed for that and you should log into your account that has the project that 
+Now pushing will not work unless you are logged into GCloud, you need the xref:ROOT:onboarding/index.adoc[gcloud CLI] 
+installed for that. With it, you should log into your account that has the project that 
 will host the **docker image** alongside the **cloud run instance**.
 
 - `gcloud auth login`
