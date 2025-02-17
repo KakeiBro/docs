@@ -14,3 +14,25 @@ And now, if we want to reference the packages and have them available, we can si
 declare them in any project file as such:
 
 include::partial$code/centralized-packages-project.adoc[]
+
+It's worth noting that by the NuGet team's recommendation it's recommended to have 
+everything under the `Directory.Packages.props` file, but this defeats a bit of 
+the purpose of centralizing without coupling dependencies. I might get back on this, 
+but when it comes to _importing things unnecesarily_ we should be safe. By actually 
+referencing a package in the `.csproj` file it will then attempt to get a reference 
+to the NuGet and we will have that dependency in our final bundle. 
+
+**All projects will not have the NuGet package taking up space**. It's by declaring the 
+reference (without the version) that the connection for the package procurement will 
+then take place.
+
+It's on my own when testing the xref:backend:ci-cd-pipelines.adoc#docker-image[docker build] process
+that I found two issues, https://learn.microsoft.com/en-us/nuget/reference/errors-and-warnings/nu1008[NU1008] and 
+even https://learn.microsoft.com/en-us/nuget/reference/errors-and-warnings/nu1604[NU1604]. 
+Even though the IDEs might be smart enough to pick up on the `Directory.*` files and then 
+reconcile that info with each project's declaration of a specific package declaration, 
+the tool itself forces us to **not have floating packages**. Unless we are really explicit, 
+and thanks to the https://learn.microsoft.com/en-us/nuget/consume-packages/central-package-management#overriding-package-versions[docs] 
+it is that I found that we can declare an **override** so that a specific project can declare 
+its own package version there and _IMHO_ abstract clutter from specific project use 
+cases to them and not having it in our _centralized_ package declaration file.

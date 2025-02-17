@@ -48,7 +48,7 @@ here that you can see that PRs and Pipelines should also come in hand and have a
 when it comes to trimming down checks for one use case and then adding others for another).
 
 Even if a developer has already go through the **layers we have setup** in the form of 
-**hooks**, we will pipelines that have **some of the same steps** plus others specific 
+**hooks**, we will have pipelines with **some of the same steps** plus others specific 
 to it so that the process is faster when running on the Remote Repository platform (GitHub).
 
 The idea behind **Continous Deployment** is _Agile_ in nature. Always be building 

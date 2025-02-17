@@ -1,0 +1,157 @@
+= CI/CD Pipelines
+
+Pipelines built with Github Actions, going all the way to the **Deployment** stage.
+
+[NOTE]
+====
+By convention pipelines are setup in `.yml` files that are comitted to the repository. 
+They should be all under `.github/workflows/`.
+====
+
+== Philosophy
+
+The same philosophy we follow for the xref:frontend:ci-cd-pipelines#philosophy.adoc[Frontend's pipelines] 
+is also followed on the _backend_.
+
+Whilst we already have put a set of automation steps focused on each workstation through 
+xref:git-hooks.adoc[Git Hooks], there are definitely many ways to circumvent those, 
+and we shouldn't have to rely entirely on each developer's willingness to adhere 
+to protocol but a centralized and (in theory) incorruptible source of thruth. 
+Hence there are other mechanisms to keep tabs on code quality and correctness 
+(according to a in-house set of rules).
+
+- Pull Requests
+- CI/CD Pipelines
+
+For the backend we will focus on running all checking and building logic, with additional 
+steps such as _Building a Docker Image_, _Uploading it to Google Cloud Artifact Registry_ 
+and _Deploying that image in a Google Cloud Run instance_. Specifically for how things 
+integrate with the Google Side of things, everything that's neccesary will be laid 
+out at the <<Google Cloud Run>> and <<Docker image>> sections.
+
+[NOTE]
+====
+And in that endeavor of making the pipelines to be as fast as possible, we will leverage 
+caching, and specifically caching with `pnpm`. PNPM is already a tool aimed at 
+reusing node modules if we have them across multiple projects, and it also has optimized 
+performance built-into it. With that plus a correct usage of **module caching** we 
+can aim at having cold starts for our frontend builds, but later builds to be much faster 
+since they will leverage all previously installed node modules, instead of having 
+to always install them from scratch.
+====
+
+== Docker image
+
+Since `.NET 8` a big emphasis was put into working with Docker out the box and with 
+_best practices_ in mind. Hence, there's already a `Dockerfile` file already present in 
+the repo from scaffolding directly, and it makes use of an `app` or `APP_UID` user 
+to run the app and not `root`, and standard HTTP and HTTPS ports (8080, 8081 respectively).
+
+The command to build the `API` project's Docker image is:
+
+```
+docker build -t kakeibro-api -f .\src\KakeiBro.API\Dockerfile .
+```
+
+By convention all scaffolded `Dockerfile` files are expecting to be **run at the solution 
+folder level**, hence we have to be standing at `Kakibro.API` and from there run the command.
+
+And in order to run a container manually you can do something like this:
+
+```
+docker run --rm -p 5214:8080 kakeibro-api
+```
+
+_Comment:_ When working with Visual Studio, you might also see a `Microsoft.VisualStudio.Azure.Containers.Tools.Targets` 
+package installed, this is leveraged in order to generate `Dockerfile` files that are 
+context aware, meaning that it will have all instructions referencing to the current state 
+of the application, in case we use Visual Studio this could be useful, but for other 
+IDE's this would be redundant.
+
+[NOTE]
+====
+After the `app` user convention it was later published a new convention, hence we 
+don't have to use `USER app` but `USER $APP_UID`. https://github.com/dotnet/dotnet-docker/issues/4506[Reference].
+====
+
+It's also worth noting that with xref:net-modulith#centralized-nuget-packages[] `Dockerfile`s 
+have to have some additions to the default structure:
+
+```
+# This stage is used to build the service project
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+ARG BUILD_CONFIGURATION=Release
+WORKDIR /src
+COPY ["Directory.Packages.props", "."]
+COPY ["Directory.Build.props", "."]
+COPY ["src/KakeiBro.API/KakeiBro.API.csproj", "src/KakeiBro.API/"]
+RUN dotnet restore "./src/KakeiBro.API/KakeiBro.API.csproj"
+COPY . .
+WORKDIR "/src/src/KakeiBro.API"
+RUN dotnet build "./KakeiBro.API.csproj" -c $BUILD_CONFIGURATION -o /app/build
+```
+It is at the `restore` stage specifically, that if we don't have the `Directory.*` 
+files copied at the same level, we won't be able to resolve the NuGet dependencies 
+and other settings that should be tied to the specific project we are containerizing. 
+Hence we have to **copy those files** and **then start the build process.**
+
+== Google Cloud Run
+
+**HINT:** https://www.youtube.com/watch?v=cw34KMPSt4k[Reference].
+
+Leveraging the same xref:prototypes:o-auth.adoc[GCloud Console Project], we will 
+make use of the _Artifact Registry_ and the _Cloud Run_ services in order to have 
+docker images hosted plus spinning them up on demand (cold starts will be assumed).
+
+After creating an _Artifact Registry_ repository, (in our case it is called _kakeibro-api_), 
+we can then copy its URL (e.g: us-east1-docker.pkg.dev/kakeibro/kakeibro-api/{image-name}), 
+and with that you can tag an existing image you have on your local machine `docker tag kakeibro-api {URL}`. 
+And after that you can push the image by doing a `docker push {URL}`. All images that 
+are under that repository will be pushed.
+
+It is after an image is present in a registry that we can switch to _Cloud Run_ and then 
+configure a service to spin up an instance of the service under that image.
+
+[NOTE]
+====
+Don't forget to make the service to be unauthenticated (unless you want to leverage 
+Google Auth as an intermediate layer), but either way, if you turn this off any public 
+IP will be able to talk to the instance.
+====
+
+We are setting it up with `1 GB` ram, and for it to not have a minimum number of 
+instances, and that is due to the fact we will incurr in billing costs if we do allocate 
+it.
+
+Once we have tied the service to our docker image and start the service, after GCloud 
+has allocated the resources and everything behind the scenes, we should be able to hit 
+the endpoint in the cloud and we should be getting back something. We can also configure 
+custom domains, and in our case we will leverage the `dsbalderrama.top` domain that has 
+been purchased, to map a web url to it, but specific to our _KakeiBro_ domain.
+
+This involves going into the **domain provider's website**, and adding **CNAME** records that 
+GCloud Console provides to us in a **step-by-step window**. It will take some time for 
+**provisioning** though, so just wait until GCloud has **synchronized itself** with the DNS 
+replication.
+
+[IMPORTANT]
+====
+When trying to construct the URL to push the image, at the beginning you will have an 
+empty repository folder, you need to then add a last segment for the name of the file that will 
+be the image. E.g: <region-server>/kakeibro/{kakeibro-api}. The last _kakeibro-api_ 
+is the name of the actual image file. If you don't add the last segment you will get an 
+error.
+====
+
+Now pushing will not work unless you are logged into GCloud, you need the **GCloud CLI 
+tool** installed for that and you should log into your account that has the project that 
+will host the **docker image** alongside the **cloud run instance**.
+
+- `gcloud auth login`
+- `gcloud config set project PROJECT_ID`
+
+Once you have been logged in, and you are at the specific GCloud project (the ID can 
+be retrieved from the list of project's at the home page of GCloud Console). You should 
+be able to push the docker image normally.
+
+Lastly, the **endpoint URL for the service** is **https://kakeibro-api.dsbalderrama.top**
