@@ -32,13 +32,207 @@ out at the <<Google Cloud Run>> and <<Docker image>> sections.
 [NOTE]
 ====
 And in that endeavor of making the pipelines to be as fast as possible, we will leverage 
-caching, and specifically caching with `pnpm`. PNPM is already a tool aimed at 
-reusing node modules if we have them across multiple projects, and it also has optimized 
-performance built-into it. With that plus a correct usage of **module caching** we 
-can aim at having cold starts for our frontend builds, but later builds to be much faster 
-since they will leverage all previously installed node modules, instead of having 
-to always install them from scratch.
+caching, unlike the xref:frontend:ci-cd-pipelines.adoc#pr-pipeline[Frontend pipelines], 
+we are going to cache both Docker layers, alongside NuGet packages with the usage of 
+a `actions.cache` pre-built action script. This approach is a bit more manual, yet 
+it leverages the same idea of packages that were already downloaded and we shouldn't 
+have the need to download them again.
 ====
+
+Due to the nature of the application, there are some security concerns tied with 
+best practices that we should discuss in order to explain the decisions behind 
+the pipelines design:
+
+1. We should put behind variables and secrets references to versions or credentials, 
+or things that in nature are dynamic and or sensitive.
+
+Github has a feature to store sensitive data securely, you can configure 
+https://github.com/github/docs/blob/main/content/actions/security-for-github-actions/security-guides/using-secrets-in-github-actions.md[secrets] 
+that way. That's simply a key-value structure attached to a repo, an environment or a 
+whole organization. In our case we will use a **repository secrets store**.
+
+=== Secrets
+
+All values stored behind secrets contain sensitive information and should **not** be 
+exposed in the workflow file. Github goes out of its way to completely obfuscate these 
+values on logs and any other place that could leak their actual values.
+
+[options="header"]
+|===
+| Variable           | Description
+| `GCP_SA_KEY`      | Contains the JSON key for your Google Cloud service account, which grants access to deploy services. Must always be kept secret.
+| `PROJECT_ID`      | While not as sensitive, it is generally a good practice to store it in secrets if you want to avoid accidental exposure.
+| `ARTIFACT_REGISTRY` | If it's specific to your cloud provider and shouldn't be exposed in logs, store it in secrets.
+| `REPOSITORY_NAME` | If you use private repositories in Artifact Registry, this should be secret.
+| `IMAGE_NAME`      | If you use naming conventions that expose internal project details, store it in secrets.
+|===
+
+_NOTE:_ Once you add a secret to the vault, you will not be able to see its value ever 
+again. So be mindful of that.
+
+==== GCP
+
+In order for the Github Action to be able to log into GCloud, push images and then deploy 
+Cloud Run instances, we need to set a _Service Account Key_:
+
+https://cloud.google.com/iam/docs/keys-create-delete#console[Reference]
+
+The easiest way to get this is by using the GCloud Console web app and downloading the 
+service key as a `.json` file. This should never be uploaded anywhere, but the github 
+secrets vault. We should paste the whole json file as the value of the key.
+
+_Note:_ Be sure to be under the correct google account and the correct project when generating 
+this service key.
+
+=== Variables
+
+Following the same idea im programming to avoid magic numbers or strings, we should try 
+to use variables, these in nature should be safe to explore in a workflow.
+
+[options="header"]
+|===
+| Variable           | Description
+| `DOTNET_VERSION`   | Just specifies which .NET version to use; no security concerns.
+| `SERVICE_NAME`     | The Cloud Run service name is not sensitive.
+| `REGION`          | The region is not sensitive unless you're trying to obscure deployment details.
+| `CACHE_VERSION`    | Used for cache invalidation and not security-sensitive.
+|===
+
+== PR Pipeline
+
+This consists of **one job**, "Build and Test".
+
+=== Build and Test
+
+Steps:
+
+* Checkout code with pre-built script
+* Setup `actions/setup-dotnet@v4` to use .NET 9
+* Cache NuGet (and possible node) packages from .NET.
+** `actions/cache@v4` is a built-in action using to cache files across workflow 
+runs. (General approach not tech-stack specific).
+** It specifices _what to cache_, .NET stores downloaded dependencies at `~/.nuget/packages`.
+** We then build a unique key to identify if we have a current project state that has the 
+same packages. The different components to this key are:
+*** **runner.os** => The OS running the workflow (ubuntu-latest, windows-latest, etc)
+*** **nuget** => A fixed identifier to describe the cache type.
+*** **env.CACHE_VERSION** => A variable that can be incremented manually to force cache 
+invalidation
+*** A hash of `.csproj` and `packages.lock.json` files. If any of these files are changed, 
+the cache **becomes invalid** and dependencies are downloaded again.
+** We also have a fallback mechanism if the exact key isn't found that's built only 
+with a partial prefix: `runner.os`-nuget-`env.CACHE_VERSION`.
+*** E.g: If the key `ubuntu-latest-nuget-v1-abc123` isn't found, GitHub will try a less 
+specific key like `ubuntu-latest-nuget-v1-`.
+** **IMPORTANT:** This is probably one of the most important steps when it comes to 
+speeding up builds, we avoid re-downloading dependencies, reduce network usage, and 
+workflow consistency is enforced since we ensure we use the same dependencies across 
+runs. For a bit more of a breakdown of how this step is idempotent and useful you can 
+check out the <<GitHub Action Caching>> section.
+* Restore dependencies
+* Check code format 
+* Build the project
+* Run tests
+* Check outdated packages
+* Run vulnerabilities check
+
+== Master Pipeline
+
+This consists of **three jobs**, "Build and Test", "Build and push docker image" 
+and "Deploy image to Cloud Run".
+
+=== Build and Test
+
+Steps:
+
+* Checkout code with pre-built script
+* Setup `actions/setup-dotnet@v4` to use .NET 9
+* Cache NuGet (and possible node) packages from .NET.
+** `actions/cache@v4` is a built-in action using to cache files across workflow 
+runs. (General approach not tech-stack specific).
+** It specifices _what to cache_, .NET stores downloaded dependencies at `~/.nuget/packages`.
+** We then build a unique key to identify if we have a current project state that has the 
+same packages. The different components to this key are:
+*** **runner.os** => The OS running the workflow (ubuntu-latest, windows-latest, etc)
+*** **nuget** => A fixed identifier to describe the cache type.
+*** **env.CACHE_VERSION** => A variable that can be incremented manually to force cache 
+invalidation
+*** A hash of `.csproj` and `packages.lock.json` files. If any of these files are changed, 
+the cache **becomes invalid** and dependencies are downloaded again.
+** We also have a fallback mechanism if the exact key isn't found that's built only 
+with a partial prefix: `runner.os`-nuget-`env.CACHE_VERSION`.
+*** E.g: If the key `ubuntu-latest-nuget-v1-abc123` isn't found, GitHub will try a less 
+specific key like `ubuntu-latest-nuget-v1-`.
+** **IMPORTANT:** This is probably one of the most important steps when it comes to 
+speeding up builds, we avoid re-downloading dependencies, reduce network usage, and 
+workflow consistency is enforced since we ensure we use the same dependencies across 
+runs. For a bit more of a breakdown of how this step is idempotent and useful you can 
+check out the <<GitHub Action Caching>> section.
+* Restore dependencies
+* Check code format 
+* Build the project
+* Run tests
+* Check outdated packages
+* Run vulnerabilities check
+
+=== Build and push docker image
+
+Steps:
+
+* Checkout code with built-in action
+* Setup another specific built in action to build a docker image: 
+`docker/setup-buildx-action@v3`
+* Following the same pattern for caching as in <<Build and Test>>, we set a specific 
+cache key built from `runner.os`-buildx-`env.CACHE_VERSION`-`github-sha`
+** One difference is that the action we will use for building and then pushing will 
+save its docker layers at `/tmp/.buildx-cache`, hence we reference that specific path.
+** This optimization is micro in nature, since it will only re-use layers that are specific 
+for a commit, hence `github.sha` is there to make the caches unique to a specific HEAD 
+commit.
+** And the fallback with omit that HASH, in any case, we will try our best to restore 
+cached layers from previous runs and when running the docker build and all it will pick 
+up on the things it can reuse or the things it can't. When the code changes (as new commits 
+are pushed), the layers should be re-built in theory, hence we add the commit variable.
+* We then make usage of another built-in repice: `docker/login-action@v3`. This takes 
+parameters such as the **artifact registry** (that's the root, e.g: `your-region-docker.pkg-dev`), 
+a **username** that if hard-set at __json_key_ it will expect to have the whole json 
+string fed to it in the following filed under **password**.
+* We leverage another built-in recipe: `docker/build-push-action@v4`. This in essence 
+builds a Dockerfile and it then pushes that to a configured registry.
+** The `context` is given through a parameter, since we have to be at the **solution folder** 
+level we adjust it to **./Kakeibro.API**
+** The action can be configured to not do a push by the end, but we want to so we 
+set it to **true**.
+** A **good practice** is to always push two tags, one referring to the new _latest_ 
+and then another under the specific _commit_id_. But there's something to take into 
+consideration here. **We are not pushing two images**. We are pushing one image, but 
+that can be accessed by two different tags, a _latest_ one and a _commit-id_ one. 
+In subsequent runs the _latest_ tag will point to the newer image that should also have 
+its new _commit-id_ tag. Hence we are always pushing the _latest_ tag to the latest and 
+just using references to make integration seamless. But this, overtime, can generate 
+junk for stale images we won't use at all, for more info on this you can check out 
+the <<Cleaning Image Registries>> section. 
+** Under `cache-from` and `cache-to` we can configure the action to try to restore 
+a previous cache (and notice how it's pointing to `/tmp/.buildx-cache`), and also save 
+all layers and artifacts to the same location (so that our caching action can then 
+save it for subsequent runs), and lastly with the `mode` parameter it will always try 
+to store the maximum number of layers. This way Docker will only rebuild the layers 
+that have changed, using the cached layers for everything else.
+
+=== Deploy image to Cloud Run
+
+Steps:
+
+* Checkout code with built-in script
+* We use another built-in action `google-github-actions/auth@v2`, that automatically 
+receives a `credentials_json` and will authenticate with GCloud.
+* We make sure we have the GCloud SDK setup so that we can start consuming the respective 
+APIs to spin up an image from the Registry that has the latest pushed image from 
+the <<Build and push docker image>> job. Luckily `google-github-actions/setup-gcloud@v2` 
+takes care of abstracting all of that.
+* We run a deploy to our configured `kakeibro-api` service with the same recommendations 
+under <<Google Cloud Run>>, but now in a CLI command version. We will be always pushing 
+the **latest** tag.
 
 == Docker image
 
@@ -155,3 +349,39 @@ be retrieved from the list of project's at the home page of GCloud Console). You
 be able to push the docker image normally.
 
 Lastly, the **endpoint URL for the service** is **https://kakeibro-api.dsbalderrama.top**
+
+== GitHub Action Caching
+
+This is a quick breakdown of how the `actions/cache@v4` works:
+
+[options="header"]
+|===
+| Condition                                 | Behavior
+| Cache exists and matches the key          | Dependencies are restored from cache.
+| Cache exists but doesn't fully match      | GitHub restores from the closest matching restore-keys prefix.
+| Cache doesn't exist                        | Dependencies are downloaded, then saved to cache for future runs.
+|===
+
+In short, we try to get from an _external nebulous site_ our cached dependencies and they 
+get restored (copied) into the current action run (at least they try their best to).
+
+== Cleaning Image Registries
+
+A **good practice** is to periodically clean up stale image tags, especially in a 
+CI/CD pipeline that generates a lot of tags over time (like commit-specific ones). 
+Unmanaged or redundant image tags can lead to unnecesary storage costs and clutter 
+in your registry.
+
+. Retention Policy
++
+The `latest` tag should always be updated, and we should only have **one**. Commit hash 
+tags are useful for referencing specific versions, but since they can accumulate over time, 
+we can remove old commit tags, and lastly, we can add versioning to our tags, however, 
+we hould also remove them when no longer used.
+. Automating Cleanup
++
+
+. Best Practices for Cleanup
+. GCP Artifact Registry Cleanup
+
+=== CRON GitHub Action
