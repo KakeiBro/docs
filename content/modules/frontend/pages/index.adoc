@@ -2,7 +2,8 @@
 
 As mentioned in the xref:domain:index.adoc[domain] section of the docs the web app 
 will be built with **React**. But just like any other application we need to choose 
-an architectural pattern to base our folder structure and workflow around.
+an architectural pattern to base our folder structure and workflow around, and also 
+designate code styles, plus sanity checks (baked into the developer experience).
 
 [NOTE]
 ====
@@ -20,7 +21,7 @@ The project was generated with `vite`. Using the command:
 === Formatter and Linter
 
 Because `vite` follows best practices and modern web development practices, it 
-already comes with eslint integrated, and its auto-generated `README` also has instructions 
+already comes with **eslint** integrated, and its auto-generated `README` also has instructions 
 on how to extend the configuration so that we get a richer dev experience with the linter.
 
 The formatter will be `prettier`, however, we are not going to leverage multiple 
