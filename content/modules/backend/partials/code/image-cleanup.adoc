@@ -62,3 +62,9 @@ we created at the _Artifact Registry_ level.
 (that's the inverse of `cat`). That way we will have all the output in descending order 
 (newer first), and we start from the 3rd newest onwards. (Again, **two tags** refer to 
 the **latest build**, and the last one refers to the **previous commit**).
++
+_Note:_ One small thing to take into account is that layers might be present at the 
+registy level, and other things specific to the inner-workings, so you might see 
+listed way more artifacts than the titular 3 we decided to keep. But **don't try to 
+delete them manually**, there are alerts for some of them also in place, but if we delete 
+things without really knowing what they are, we might break other services.
