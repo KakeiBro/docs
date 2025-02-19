@@ -104,6 +104,20 @@ as a super-layer that gets applied to **all solution's projects**. When it comes
 code quality concerns, the same settings that would be applied to a 
 <<project-file, csproj file>> will now be stated there.
 
+[#line-endings]
+[NOTE]
+====
+One really important setting we need to take into consideration at the `.editorconfig` 
+level is line endings. Since it applies as layered rules for different patterns, we should 
+not enforce a specific line ending, `[\\*] end_of_line = unset`, but for our source files 
+we should normalize to Unix' Line Feed `[\\*.cs] end_of_line lf`. This will do two things: 
+**1st:** When running a `dotnet format` it will pick up on files that go against the rule 
+and highlight an error in them, **2nd:** If we run the formatter with fixing, and or 
+use formatting with the IDE it will apply this line ending automatically. We mostly 
+have to do this to ensure that Cross-Platform compabitility doesn't break, and things 
+such as **pipelines** also don't break.
+====
+
 === NuGet Packages
 
 As it was mentioned before, we will be installing **StyleCop.Analyzers** alongside 

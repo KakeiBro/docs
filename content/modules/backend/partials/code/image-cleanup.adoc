@@ -1,0 +1,64 @@
+[source, bash]
+----
+#!/bin/bash
+
+# Variables
+SERVICE_NAME=$SERVICE_NAME <1>
+REGION=$REGION
+PROJECT_ID=$PROJECT_ID
+REPOSITORY_NAME=$REPOSITORY_NAME
+IMAGE_NAME=$IMAGE_NAME
+
+# Authenticate to Google Cloud (already done in the workflow, but included for completeness)
+echo "Authenticating to Google Cloud..."
+gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS <2>
+
+# Get the list of tags for the specified package, sorted by creation time in descending order
+echo "Fetching tags for package..."
+TAGS=$(gcloud artifacts tags list \
+  --project=$PROJECT_ID \
+  --location=$REGION \ <3>
+  --repository=$REPOSITORY_NAME \ <4>
+  --package=$IMAGE_NAME \ <5>
+  --format="value(name)" | tac) <6>
+
+# Convert the list of tags into an array
+TAGS_ARRAY=($TAGS)
+
+# Check if there are more than 3 tags
+if [ ${#TAGS_ARRAY[@]} -gt 3 ]; then
+  echo "Found ${#TAGS_ARRAY[@]} tags. Keeping the 3 most recent ones and deleting the rest..."
+
+  # Loop through the tags, skipping the first 3 (most recent)
+  for ((i=3; i<${#TAGS_ARRAY[@]}; i++)); do
+    TAG=${TAGS_ARRAY[$i]}
+    echo "Deleting tag: $TAG"
+    gcloud artifacts tags delete $TAG \
+      --project=$PROJECT_ID \
+      --location=$REGION \
+      --repository=$REPOSITORY_NAME \
+      --package=$IMAGE_NAME \
+      --quiet
+  done
+else
+  echo "Only ${#TAGS_ARRAY[@]} tags found. No cleanup needed."
+fi
+
+echo "Cleanup complete!"
+----
+<1> Just so that the script gets access to the upstream env variables we need to make 
+this assignment (for all variables).
+<2> Luckily, we get access to the env variable with our google credentials, this 
+should be populated already due to the previous steps that ran before this script. 
+(In case this needs to be leveraged elsewhere, be sure to be logged into GCloud before 
+trying to run this script)
+<3> Unlike the `$ARTIFACT_REGISTRY` value that references both the region plus the 
+actual domain, this is simply the region section of that.
+<4> The same repository name that we have under _secrets_, this is the root that 
+we created at the _Artifact Registry_ level.
+<5> And lastly a **_Package_** is the name of the image that's under the repository.
+<6> We could use a `--sort_by=~create_time`, however GCloud always returns in Ascending 
+(older first), and so we leverage the CLI to inverse the output we get with `tac` 
+(that's the inverse of `cat`). That way we will have all the output in descending order 
+(newer first), and we start from the 3rd newest onwards. (Again, **two tags** refer to 
+the **latest build**, and the last one refers to the **previous commit**).

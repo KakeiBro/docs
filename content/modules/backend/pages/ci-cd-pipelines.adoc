@@ -62,7 +62,7 @@ values on logs and any other place that could leak their actual values.
 | Variable           | Description
 | `GCP_SA_KEY`      | Contains the JSON key for your Google Cloud service account, which grants access to deploy services. Must always be kept secret.
 | `PROJECT_ID`      | While not as sensitive, it is generally a good practice to store it in secrets if you want to avoid accidental exposure.
-| `ARTIFACT_REGISTRY` | If it's specific to your cloud provider and shouldn't be exposed in logs, store it in secrets.
+| `ARTIFACT_REGISTRY` | If it's specific to your cloud provider and shouldn't be exposed in logs, store it in secrets. (This is the region plus the specific domain)
 | `REPOSITORY_NAME` | If you use private repositories in Artifact Registry, this should be secret.
 | `IMAGE_NAME`      | If you use naming conventions that expose internal project details, store it in secrets.
 |===
@@ -98,6 +98,35 @@ to use variables, these in nature should be safe to explore in a workflow.
 | `CACHE_VERSION`    | Used for cache invalidation and not security-sensitive.
 |===
 
+=== Line endings with dotnet format
+
+When working cross-platform, a common concept we have to be aware of is that Windows 
+has a different line ending than Unix-based OS'. Carriage Return + Line Feed `\r\n` 
+vs Line Feed`\n`. It's based on this concept that when running a pipeline with 
+`dotnet format` a Linux distribution, will immediately highlight the 
+difference and fail. In order to get around this, we have to make 2 changes:
+
+- We can leverage `git` in order to enforce that it handles line endings, so that 
+the moment we commit to a repository, regardless of the OS, the `\n` (Line Feed) 
+character is used.
++
+For this we simply have to create a `.gitattributes` file at the root of the repo and 
+add it with the following content:
++
+```
+# Set the default behavior for all files
+* text=auto
+
+# Force specific line endings for certain file types
+*.cs text eol=lf
+```
+
+- If we have already incorrect-format files, we have to manually leverage the IDE so 
+that we save the file and switch the CRLF format to LF.
+
+But lastly, we need to make sure our `.editorconfig` settings are correct, for more info 
+you can head down to the xref:index.adoc#line-endings[Code Quality] section.
+
 == PR Pipeline
 
 This consists of **one job**, "Build and Test".
@@ -106,7 +135,7 @@ This consists of **one job**, "Build and Test".
 
 Steps:
 
-* Checkout code with pre-built script
+* Checkout code with pre-built script, and point to the second level solution folder.
 * Setup `actions/setup-dotnet@v4` to use .NET 9
 * Cache NuGet (and possible node) packages from .NET.
 ** `actions/cache@v4` is a built-in action using to cache files across workflow 
@@ -132,7 +161,11 @@ check out the <<GitHub Action Caching>> section.
 * Restore dependencies
 * Check code format 
 * Build the project
-* Run tests
+* Run tests but on **Release mode**, this build is optimized so tests may run differently 
+to a `Debug` build. Also, we are skipping building since that was already done in 
+a previous step (faster times), and also in the end we want a bit more detail on tests if 
+something wrongs pops up, hence we are stating for verbosity to be `normal`, since by 
+default it's only at `minimal`.
 * Check outdated packages
 * Run vulnerabilities check
 
@@ -145,7 +178,7 @@ and "Deploy image to Cloud Run".
 
 Steps:
 
-* Checkout code with pre-built script
+* Checkout code with pre-built script, and point to the second level solution folder.
 * Setup `actions/setup-dotnet@v4` to use .NET 9
 * Cache NuGet (and possible node) packages from .NET.
 ** `actions/cache@v4` is a built-in action using to cache files across workflow 
@@ -171,7 +204,11 @@ check out the <<GitHub Action Caching>> section.
 * Restore dependencies
 * Check code format 
 * Build the project
-* Run tests
+* Run tests but on **Release mode**, this build is optimized so tests may run differently 
+to a `Debug` build. Also, we are skipping building since that was already done in 
+a previous step (faster times), and also in the end we want a bit more detail on tests if 
+something wrongs pops up, hence we are stating for verbosity to be `normal`, since by 
+default it's only at `minimal`.
 * Check outdated packages
 * Run vulnerabilities check
 
@@ -203,7 +240,7 @@ builds a Dockerfile and it then pushes that to a configured registry.
 level we adjust it to **./Kakeibro.API**
 ** The action can be configured to not do a push by the end, but we want to so we 
 set it to **true**.
-** A **good practice** is to always push two tags, one referring to the new _latest_ 
+** A **good practice** is to always [#push-two-tags]#push two tags#, one referring to the new _latest_ 
 and then another under the specific _commit_id_. But there's something to take into 
 consideration here. **We are not pushing two images**. We are pushing one image, but 
 that can be accessed by two different tags, a _latest_ one and a _commit-id_ one. 
@@ -232,7 +269,11 @@ the <<Build and push docker image>> job. Luckily `google-github-actions/setup-gc
 takes care of abstracting all of that.
 * We run a deploy to our configured `kakeibro-api` service with the same recommendations 
 under <<Google Cloud Run>>, but now in a CLI command version. We will be always pushing 
-the **latest** tag.
+the **latest** tag, and on an already existing instance it will simply replace the image that 
+its hosting with the newly built one. **Every detail counts**, the replacement will only 
+take place if we are pointing to the same name and same configurations, if something 
+like the _region_ is different, it will create two services with the same name, but on 
+different regions.
 
 == Docker image
 
@@ -365,23 +406,62 @@ This is a quick breakdown of how the `actions/cache@v4` works:
 In short, we try to get from an _external nebulous site_ our cached dependencies and they 
 get restored (copied) into the current action run (at least they try their best to).
 
+When heading down to _Actions > Caches_ we will see a list of the caches that were created 
+through GitHub Actions. So this isn't as _automated_ as you might think, these caches will 
+start piling up as the project starts to grow, so a good way to housekeep is to have scripts, 
+or some other job in charge of getting rid of stale caches that have no usage.
+
 == Cleaning Image Registries
 
 A **good practice** is to periodically clean up stale image tags, especially in a 
 CI/CD pipeline that generates a lot of tags over time (like commit-specific ones). 
 Unmanaged or redundant image tags can lead to unnecesary storage costs and clutter 
-in your registry.
+your registry.
 
 . Retention Policy
 +
 The `latest` tag should always be updated, and we should only have **one**. Commit hash 
 tags are useful for referencing specific versions, but since they can accumulate over time, 
 we can remove old commit tags, and lastly, we can add versioning to our tags, however, 
-we hould also remove them when no longer used.
+we should also remove them when no longer used.
 . Automating Cleanup
 +
-
+We can leverage registry features, such as Google Artifact Registry, Docker Hub, etc, 
+if they provide features to manage and delete unused or old tags automatically. The 
+policies can range from old tags after a specific period or when the number 
+of tags exceeds a certain threshold. The _second options_ would be a custom script, 
+**this is what we will do**, we can run checks on Image age, number of tags, or tags 
+associated with unmerged or stale branches.
 . Best Practices for Cleanup
-. GCP Artifact Registry Cleanup
++
+We should **keep the latest and stable versions**, so that you have the latest and also 
+some image you can roll-back to. **Automate cleanup based on usage**, only keep images 
+that are actively used in deployments or are tagged as critical releases.
 
 === CRON GitHub Action
+
+First of all, we will assume we have a scripts folder at `.github` so that we put in 
+scripts that actions might want to run:
+
+```
+.github/
+  workflows/
+    cleanup-image-registry.yml
+  scripts/
+    image-cleanup.sh
+```
+
+This is the action itself:
+
+include::partial$code/registry-cleanup.adoc[]
+
+And the specific script is:
+
+include::partial$code/image-cleanup.adoc[]
+
+[IMPORTANT]
+====
+Since pipelines (at least most of the time should) **run on a Linux build machine**, 
+we will have to leverage bash scripts and linux specific commands when automating 
+our process.
+====
