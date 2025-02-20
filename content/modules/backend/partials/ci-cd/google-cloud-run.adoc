@@ -1,0 +1,69 @@
+== Google Cloud Run
+
+**HINT:** https://www.youtube.com/watch?v=cw34KMPSt4k[Reference].
+
+Leveraging the same xref:prototypes:o-auth.adoc[GCloud Console Project], we will 
+make use of the _Artifact Registry_ and the _Cloud Run_ services in order to have 
+docker images hosted plus spinning them up on demand (cold starts will be assumed).
+
+After creating an _Artifact Registry_ repository, (in our case it is called _kakeibro-api_), 
+we can then copy its URL (e.g: us-east1-docker.pkg.dev/kakeibro/kakeibro-api/<image-name>), 
+and with that you can tag an existing image you have on your local machine `docker tag kakeibro-api <URL>`. 
+And after that you can push the image by doing a `docker push <URL>`. All images that 
+are under that repository will be pushed.
+
+It is after an image is present in a registry that we can switch to _Cloud Run_ and then 
+configure a service to spin up an instance of the service under that image.
+
+[NOTE]
+====
+Don't forget to make the service to be unauthenticated (unless you want to leverage 
+Google Auth as an intermediate layer), but either way, if you turn this off any public 
+IP will be able to talk to the instance.
+====
+
+We are setting it up with `1 GB` ram, and for it to not have a minimum number of 
+instances, and that is due to the fact we will incurr in billing costs if we do allocate 
+it.
+
+Once we have tied the service to our docker image and start the service, after GCloud 
+has allocated the resources and everything behind the scenes, we should be able to hit 
+the endpoint in the cloud and we should be getting back something. We can also configure 
+custom domains, and in our case we will leverage the `dsbalderrama.top` domain that has 
+been purchased, to map a web url to it, but specific to our _KakeiBro_ domain.
+
+This involves going into the **domain provider's website**, and adding **CNAME** records that 
+GCloud Console provides to us in a **step-by-step window**. It will take some time for 
+**provisioning** though, so just wait until GCloud has **synchronized itself** with the DNS 
+replication.
+
+[IMPORTANT]
+====
+When trying to construct the URL to push the image, at the beginning you will have an 
+empty repository folder, you need to then add a last segment for the name of the file that will 
+be the image. E.g: <region-server>/kakeibro/<kakeibro-api>. The last _kakeibro-api_ 
+is the name of the actual image file. If you don't add the last segment you will get an 
+error.
+====
+
+Now pushing will not work unless you are logged into GCloud, you need the xref:ROOT:onboarding/index.adoc[gcloud CLI] 
+installed for that. With it, you should log into your account that has the project that 
+will host the **docker image** alongside the **cloud run instance**.
+
+- `gcloud auth login`
+- `gcloud config set project PROJECT_ID`
+
+Once you have been logged in, and you are at the specific GCloud project (the ID can 
+be retrieved from the list of project's at the home page of GCloud Console). You should 
+be able to push the docker image normally.
+
+Lastly, the **endpoint URL for the service** is **https://kakeibro-api.dsbalderrama.top**
+
+[NOTE]
+====
+A particularity to the pre-built action on <<Build and push docker image>>, is that in 
+Google Artifact Registry it might generate more artifacts without tags, (https://github.com/docker/build-push-action/issues/771[Reference]), 
+and so, an active decision that was taken was to use the latest version: `docker/build-push-action@v6`, 
+plus setting `provenance: false`, for more info on provenance you can head into its 
+own <<Build Push Action Provenance>> section
+====

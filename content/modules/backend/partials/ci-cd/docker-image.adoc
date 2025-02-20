@@ -1,0 +1,54 @@
+== Docker image
+
+Since `.NET 8` a big emphasis was put into working with Docker out the box and with 
+_best practices_ in mind. Hence, there's already a `Dockerfile` file already present in 
+the repo from scaffolding directly, and it makes use of an `app` or `APP_UID` user 
+to run the app and not `root`, and standard HTTP and HTTPS ports (8080, 8081 respectively).
+
+The command to build the `API` project's Docker image is:
+
+```
+docker build -t kakeibro-api -f .\src\KakeiBro.API\Dockerfile .
+```
+
+By convention all scaffolded `Dockerfile` files are expecting to be **run at the solution 
+folder level**, hence we have to be standing at `Kakibro.API` and from there run the command.
+
+And in order to run a container manually you can do something like this:
+
+```
+docker run --rm -p 5214:8080 kakeibro-api
+```
+
+_Comment:_ When working with Visual Studio, you might also see a `Microsoft.VisualStudio.Azure.Containers.Tools.Targets` 
+package installed, this is leveraged in order to generate `Dockerfile` files that are 
+context aware, meaning that it will have all instructions referencing to the current state 
+of the application, in case we use Visual Studio this could be useful, but for other 
+IDE's this would be redundant.
+
+[NOTE]
+====
+After the `app` user convention it was later published a new convention, hence we 
+don't have to use `USER app` but `USER $APP_UID`. https://github.com/dotnet/dotnet-docker/issues/4506[Reference].
+====
+
+It's also worth noting that with xref:net-modulith#centralized-nuget-packages[Centralized Package Management]. 
+`Dockerfile`s have to have some additions to the default structure:
+
+```
+# This stage is used to build the service project
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+ARG BUILD_CONFIGURATION=Release
+WORKDIR /src
+COPY ["Directory.Packages.props", "."]
+COPY ["Directory.Build.props", "."]
+COPY ["src/KakeiBro.API/KakeiBro.API.csproj", "src/KakeiBro.API/"]
+RUN dotnet restore "./src/KakeiBro.API/KakeiBro.API.csproj"
+COPY . .
+WORKDIR "/src/src/KakeiBro.API"
+RUN dotnet build "./KakeiBro.API.csproj" -c $BUILD_CONFIGURATION -o /app/build
+```
+It is at the `restore` stage specifically, that if we don't have the `Directory.*` 
+files copied at the same level, we won't be able to resolve the NuGet dependencies 
+and other settings that should be tied to the specific project we are containerizing. 
+Hence we have to **copy those files** and **then start the build process.**

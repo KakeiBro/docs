@@ -1,0 +1,118 @@
+== Philosophy
+
+The same philosophy we follow for the xref:frontend:ci-cd-pipelines#philosophy.adoc[Frontend's pipelines] 
+is also followed on the _backend_.
+
+Whilst we already have put a set of automation steps focused on each workstation through 
+xref:git-hooks.adoc[Git Hooks], there are definitely many ways to circumvent those, 
+and we shouldn't have to rely entirely on each developer's willingness to adhere 
+to protocol but a centralized and (in theory) incorruptible source of thruth. 
+Hence there are other mechanisms to keep tabs on code quality and correctness 
+(according to a in-house set of rules).
+
+- Pull Requests
+- CI/CD Pipelines
+
+For the backend we will focus on running all checking and building logic, with additional 
+steps such as _Building a Docker Image_, _Uploading it to Google Cloud Artifact Registry_ 
+and _Deploying that image in a Google Cloud Run instance_. Specifically for how things 
+integrate with the Google Side of things, everything that's neccesary will be laid 
+out at the <<Google Cloud Run>> and <<Docker image>> sections.
+
+[NOTE]
+====
+And in that endeavor of making the pipelines to be as fast as possible, we will leverage 
+caching, unlike the xref:frontend:ci-cd-pipelines.adoc#pr-pipeline[Frontend pipelines], 
+we are going to cache both Docker layers, alongside NuGet packages with the usage of 
+a `actions.cache` pre-built action script. This approach is a bit more manual, yet 
+it leverages the same idea of packages that were already downloaded and we shouldn't 
+have the need to download them again.
+====
+
+Due to the nature of the application, there are some security concerns tied with 
+best practices that we should discuss in order to explain the decisions behind 
+the pipelines design:
+
+1. We should put behind variables and secrets references to versions or credentials, 
+or things that in nature are dynamic and or sensitive.
+
+Github has a feature to store sensitive data securely, you can configure 
+https://github.com/github/docs/blob/main/content/actions/security-for-github-actions/security-guides/using-secrets-in-github-actions.md[secrets] 
+that way. That's simply a key-value structure attached to a repo, an environment or a 
+whole organization. In our case we will use a **repository secrets store**.
+
+=== Secrets
+
+All values stored behind secrets contain sensitive information and should **not** be 
+exposed in the workflow file. Github goes out of its way to completely obfuscate these 
+values on logs and any other place that could leak their actual values.
+
+[options="header"]
+|===
+| Variable           | Description
+| `GCP_SA_KEY`      | Contains the JSON key for your Google Cloud service account, which grants access to deploy services. Must always be kept secret.
+| `PROJECT_ID`      | While not as sensitive, it is generally a good practice to store it in secrets if you want to avoid accidental exposure.
+| `ARTIFACT_REGISTRY` | If it's specific to your cloud provider and shouldn't be exposed in logs, store it in secrets. (This is the region plus the specific domain)
+| `REPOSITORY_NAME` | If you use private repositories in Artifact Registry, this should be secret.
+| `IMAGE_NAME`      | If you use naming conventions that expose internal project details, store it in secrets.
+|===
+
+_NOTE:_ Once you add a secret to the vault, you will not be able to see its value ever 
+again. So be mindful of that.
+
+==== GCP
+
+In order for the Github Action to be able to log into GCloud, push images and then deploy 
+Cloud Run instances, we need to set a _Service Account Key_:
+
+https://cloud.google.com/iam/docs/keys-create-delete#console[Reference]
+
+The easiest way to get this is by using the GCloud Console web app and downloading the 
+service key as a `.json` file. This should never be uploaded anywhere, but the github 
+secrets vault. We should paste the whole json file as the value of the key.
+
+_Note:_ Be sure to be under the correct google account and the correct project when generating 
+this service key.
+
+=== Variables
+
+Following the same idea im programming to avoid magic numbers or strings, we should try 
+to use variables, these in nature should be safe to explore in a workflow.
+
+[options="header"]
+|===
+| Variable           | Description
+| `DOTNET_VERSION`   | Just specifies which .NET version to use; no security concerns.
+| `SERVICE_NAME`     | The Cloud Run service name is not sensitive.
+| `REGION`          | The region is not sensitive unless you're trying to obscure deployment details.
+| `CACHE_VERSION`    | Used for cache invalidation and not security-sensitive.
+|===
+
+=== Line endings with dotnet format
+
+When working cross-platform, a common concept we have to be aware of is that Windows 
+has a different line ending than Unix-based OS'. Carriage Return + Line Feed `\r\n` 
+vs Line Feed`\n`. It's based on this concept that when running a pipeline with 
+`dotnet format` a Linux distribution, will immediately highlight the 
+difference and fail. In order to get around this, we have to make 2 changes:
+
+- We can leverage `git` in order to enforce that it handles line endings, so that 
+the moment we commit to a repository, regardless of the OS, the `\n` (Line Feed) 
+character is used.
++
+For this we simply have to create a `.gitattributes` file at the root of the repo and 
+add it with the following content:
++
+```
+# Set the default behavior for all files
+* text=auto
+
+# Force specific line endings for certain file types
+*.cs text eol=lf
+```
+
+- If we have already incorrect-format files, we have to manually leverage the IDE so 
+that we save the file and switch the CRLF format to LF.
+
+But lastly, we need to make sure our `.editorconfig` settings are correct, for more info 
+you can head down to the xref:index.adoc#line-endings[Code Quality] section.

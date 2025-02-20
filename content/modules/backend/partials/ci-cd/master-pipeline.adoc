@@ -1,0 +1,109 @@
+== Master Pipeline
+
+This consists of **three jobs**, "Build and Test", "Build and push docker image" 
+and "Deploy image to Cloud Run".
+
+=== Build and Test
+
+Steps:
+
+* Checkout code with pre-built script, and point to the second level solution folder.
+* Setup `actions/setup-dotnet@v4` to use .NET 9
+* Cache NuGet (and possible node) packages from .NET.
+** `actions/cache@v4` is a built-in action using to cache files across workflow 
+runs. (General approach not tech-stack specific).
+** It specifices _what to cache_, .NET stores downloaded dependencies at `~/.nuget/packages`.
+** We then build a unique key to identify if we have a current project state that has the 
+same packages. The different components to this key are:
+*** **runner.os** => The OS running the workflow (ubuntu-latest, windows-latest, etc)
+*** **nuget** => A fixed identifier to describe the cache type.
+*** **env.CACHE_VERSION** => A variable that can be incremented manually to force cache 
+invalidation
+*** A hash of `.csproj` and `packages.lock.json` files. If any of these files are changed, 
+the cache **becomes invalid** and dependencies are downloaded again.
+** We also have a fallback mechanism if the exact key isn't found that's built only 
+with a partial prefix: `runner.os`-nuget-`env.CACHE_VERSION`.
+*** E.g: If the key `ubuntu-latest-nuget-v1-abc123` isn't found, GitHub will try a less 
+specific key like `ubuntu-latest-nuget-v1-`.
+** **IMPORTANT:** This is probably one of the most important steps when it comes to 
+speeding up builds, we avoid re-downloading dependencies, reduce network usage, and 
+workflow consistency is enforced since we ensure we use the same dependencies across 
+runs. For a bit more of a breakdown of how this step is idempotent and useful you can 
+check out the <<GitHub Action Caching>> section.
+* Restore dependencies
+* Check code format 
+* Build the project
+* Run tests but on **Release mode**, this build is optimized so tests may run differently 
+to a `Debug` build. Also, we are skipping building since that was already done in 
+a previous step (faster times), and also in the end we want a bit more detail on tests if 
+something wrongs pops up, hence we are stating for verbosity to be `normal`, since by 
+default it's only at `minimal`.
+* Check outdated packages
+* Run vulnerabilities check
+
+=== Build and push docker image
+
+Steps:
+
+* Checkout code with built-in action
+* Setup another specific built in action to build a docker image: 
+`docker/setup-buildx-action@v3`
+* Following the same pattern for caching as in <<Build and Test>>, we set a specific 
+cache key built from `runner.os`-buildx-`env.CACHE_VERSION`-`github-sha`
+** One difference is that the action we will use for building and then pushing will 
+save its docker layers at `/tmp/.buildx-cache`, hence we reference that specific path.
+** This optimization is micro in nature, since it will only re-use layers that are specific 
+for a commit, hence `github.sha` is there to make the caches unique to a specific HEAD 
+commit.
+** And the fallback with omit that HASH, in any case, we will try our best to restore 
+cached layers from previous runs and when running the docker build and all it will pick 
+up on the things it can reuse or the things it can't. When the code changes (as new commits 
+are pushed), the layers should be re-built in theory, hence we add the commit variable.
+* We then make usage of another built-in repice: `docker/login-action@v3`. This takes 
+parameters such as the **artifact registry** (that's the root, e.g: `your-region-docker.pkg-dev`), 
+a **username** that if hard-set at __json_key_ it will expect to have the whole json 
+string fed to it in the following filed under **password**.
+* We leverage another built-in recipe: `docker/build-push-action@v4`. This in essence 
+builds a Dockerfile and it then pushes that to a configured registry.
+** The `context` is given through a parameter, since we have to be at the **solution folder** 
+level we adjust it to **./Kakeibro.API**
+** The action can be configured to not do a push by the end, but we want to so we 
+set it to **true**.
+** A **good practice** is to always [#push-two-tags]#push two tags#, one referring to the new _latest_ 
+and then another under the specific _commit_id_. But there's something to take into 
+consideration here. **We are not pushing two images**. We are pushing one image, but 
+that can be accessed by two different tags, a _latest_ one and a _commit-id_ one. 
+In subsequent runs the _latest_ tag will point to the newer image that should also have 
+its new _commit-id_ tag. Hence we are always pushing the _latest_ tag to the latest and 
+just using references to make integration seamless. But this, overtime, can generate 
+junk for stale images we won't use at all, for more info on this you can check out 
+the <<Cleaning Image Registries>> section. 
+** Under `cache-from` and `cache-to` we can configure the action to try to restore 
+a previous cache (and notice how it's pointing to `/tmp/.buildx-cache`), and also save 
+all layers and artifacts to the same location (so that our caching action can then 
+save it for subsequent runs), and lastly with the `mode` parameter it will always try 
+to store the maximum number of layers. This way Docker will only rebuild the layers 
+that have changed, using the cached layers for everything else.
+** Lastly, since our project is not _compliance_ sensitive, 
+<<Build Push Action Provenance, provenance>> is not something we care about, and to avoid 
+generating more artifacts that we have no use for (and that generate noise), we are turning 
+it **off**
+
+=== Deploy image to Cloud Run
+
+Steps:
+
+* Checkout code with built-in script
+* We use another built-in action `google-github-actions/auth@v2`, that automatically 
+receives a `credentials_json` and will authenticate with GCloud.
+* We make sure we have the GCloud SDK setup so that we can start consuming the respective 
+APIs to spin up an image from the Registry that has the latest pushed image from 
+the <<Build and push docker image>> job. Luckily `google-github-actions/setup-gcloud@v2` 
+takes care of abstracting all of that.
+* We run a deploy to our configured `kakeibro-api` service with the same recommendations 
+under <<Google Cloud Run>>, but now in a CLI command version. We will be always pushing 
+the **latest** tag, and on an already existing instance it will simply replace the image that 
+its hosting with the newly built one. **Every detail counts**, the replacement will only 
+take place if we are pointing to the same name and same configurations, if something 
+like the _region_ is different, it will create two services with the same name, but on 
+different regions.

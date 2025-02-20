@@ -1,0 +1,41 @@
+== PR Pipeline
+
+This consists of **one job**, "Build and Test".
+
+=== Build and Test
+
+Steps:
+
+* Checkout code with pre-built script, and point to the second level solution folder.
+* Setup `actions/setup-dotnet@v4` to use .NET 9
+* Cache NuGet (and possible node) packages from .NET.
+** `actions/cache@v4` is a built-in action using to cache files across workflow 
+runs. (General approach not tech-stack specific).
+** It specifices _what to cache_, .NET stores downloaded dependencies at `~/.nuget/packages`.
+** We then build a unique key to identify if we have a current project state that has the 
+same packages. The different components to this key are:
+*** **runner.os** => The OS running the workflow (ubuntu-latest, windows-latest, etc)
+*** **nuget** => A fixed identifier to describe the cache type.
+*** **env.CACHE_VERSION** => A variable that can be incremented manually to force cache 
+invalidation
+*** A hash of `.csproj` and `packages.lock.json` files. If any of these files are changed, 
+the cache **becomes invalid** and dependencies are downloaded again.
+** We also have a fallback mechanism if the exact key isn't found that's built only 
+with a partial prefix: `runner.os`-nuget-`env.CACHE_VERSION`.
+*** E.g: If the key `ubuntu-latest-nuget-v1-abc123` isn't found, GitHub will try a less 
+specific key like `ubuntu-latest-nuget-v1-`.
+** **IMPORTANT:** This is probably one of the most important steps when it comes to 
+speeding up builds, we avoid re-downloading dependencies, reduce network usage, and 
+workflow consistency is enforced since we ensure we use the same dependencies across 
+runs. For a bit more of a breakdown of how this step is idempotent and useful you can 
+check out the <<GitHub Action Caching>> section.
+* Restore dependencies
+* Check code format 
+* Build the project
+* Run tests but on **Release mode**, this build is optimized so tests may run differently 
+to a `Debug` build. Also, we are skipping building since that was already done in 
+a previous step (faster times), and also in the end we want a bit more detail on tests if 
+something wrongs pops up, hence we are stating for verbosity to be `normal`, since by 
+default it's only at `minimal`.
+* Check outdated packages
+* Run vulnerabilities check

@@ -1,0 +1,74 @@
+== GitHub Action Caching
+
+This is a quick breakdown of how the `actions/cache@v4` works:
+
+[options="header"]
+|===
+| Condition                                 | Behavior
+| Cache exists and matches the key          | Dependencies are restored from cache.
+| Cache exists but doesn't fully match      | GitHub restores from the closest matching restore-keys prefix.
+| Cache doesn't exist                        | Dependencies are downloaded, then saved to cache for future runs.
+|===
+
+In short, we try to get from an _external nebulous site_ our cached dependencies and they 
+get restored (copied) into the current action run (at least they try their best to).
+
+When heading down to _Actions > Caches_ we will see a list of the caches that were created 
+through GitHub Actions. So this isn't as _automated_ as you might think, these caches will 
+start piling up as the project starts to grow, so a good way to housekeep is to have scripts, 
+or some other job in charge of getting rid of stale caches that have no usage.
+
+== Cleaning Image Registries
+
+A **good practice** is to periodically clean up stale image tags, especially in a 
+CI/CD pipeline that generates a lot of tags over time (like commit-specific ones). 
+Unmanaged or redundant image tags can lead to unnecesary storage costs and clutter 
+your registry.
+
+. Retention Policy
++
+The `latest` tag should always be updated, and we should only have **one**. Commit hash 
+tags are useful for referencing specific versions, but since they can accumulate over time, 
+we can remove old commit tags, and lastly, we can add versioning to our tags, however, 
+we should also remove them when no longer used.
+. Automating Cleanup
++
+We can leverage registry features, such as Google Artifact Registry, Docker Hub, etc, 
+if they provide features to manage and delete unused or old tags automatically. The 
+policies can range from old tags after a specific period or when the number 
+of tags exceeds a certain threshold. The _second options_ would be a custom script, 
+**this is what we will do**, we can run checks on Image age, number of tags, or tags 
+associated with unmerged or stale branches.
+. Best Practices for Cleanup
++
+We should **keep the latest and stable versions**, so that you have the latest and also 
+some image you can roll-back to. **Automate cleanup based on usage**, only keep images 
+that are actively used in deployments or are tagged as critical releases.
+
+=== CRON GitHub Action
+
+First of all, we will assume we have a scripts folder at `.github` so that we put in 
+scripts that actions might want to run:
+
+```
+.github/
+  workflows/
+    cleanup-image-registry.yml
+  scripts/
+    image-cleanup.sh
+```
+
+This is the action itself:
+
+include::partial$code/registry-cleanup.adoc[]
+
+And the specific script is:
+
+include::partial$code/image-cleanup.adoc[]
+
+[IMPORTANT]
+====
+Since pipelines (at least most of the time should) **run on a Linux build machine**, 
+we will have to leverage bash scripts and linux specific commands when automating 
+our process.
+====

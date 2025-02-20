@@ -1,0 +1,30 @@
+== Build Push Action Provenance
+
+Provenance metadata includes details about:
+
+- The build environment (e.g, Git commit SHA, timestamp, build parameters)
+- The source used for building the image (e.g., repository URL)
+- The toolchain used (e.g., Docker BuildKit version)
+
+This metadata helps with **supply chain security** by making builds traceable and 
+verifiable, which is useful for **SBOM** (Software Bill of Materials) and **SLSA** (Supply-chain 
+Levels for Software Artifacts) compliance.
+
+Turning it **off** does the following:
+
+- It **disables** the inclusion of build provenance metadata in the final image.
+- This results in a **smaller** image size.
+- It may also improve **build performance** slightly.
+- However it **removes traceability**, making it harder to verify the image source 
+in security audits.
+
+**When to use it?**
+
+- You **don't need supply chain security features**
+- You **want a smaller, simpler image**.
+- You're working in a **private, trusted environment**.
+
+**When should you let provenance?**
+
+- You need to **track the origin of builds** (e.g., for compliance reasons)
+- You're in a **security-sensitive** environment (e.g., public images, regulated industries)
