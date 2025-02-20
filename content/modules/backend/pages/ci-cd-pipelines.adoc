@@ -255,6 +255,10 @@ all layers and artifacts to the same location (so that our caching action can th
 save it for subsequent runs), and lastly with the `mode` parameter it will always try 
 to store the maximum number of layers. This way Docker will only rebuild the layers 
 that have changed, using the cached layers for everything else.
+** Lastly, since our project is not _compliance_ sensitive, 
+<<Build Push Action Provenance, provenance>> is not something we care about, and to avoid 
+generating more artifacts that we have no use for (and that generate noise), we are turning 
+it **off**
 
 === Deploy image to Cloud Run
 
@@ -390,6 +394,46 @@ be retrieved from the list of project's at the home page of GCloud Console). You
 be able to push the docker image normally.
 
 Lastly, the **endpoint URL for the service** is **https://kakeibro-api.dsbalderrama.top**
+
+[NOTE]
+====
+A particularity to the pre-built action on <<Build and push docker image>>, is that in 
+Google Artifact Registry it might generate more artifacts without tags, (https://github.com/docker/build-push-action/issues/771[Reference]), 
+and so, an active decision that was taken was to use the latest version: `docker/build-push-action@v6`, 
+plus setting `provenance: false`, for more info on provenance you can head into its 
+own <<Build Push Action Provenance>> section
+====
+
+== Build Push Action Provenance
+
+Provenance metadata includes details about:
+
+- The build environment (e.g, Git commit SHA, timestamp, build parameters)
+- The source used for building the image (e.g., repository URL)
+- The toolchain used (e.g., Docker BuildKit version)
+
+This metadata helps with **supply chain security** by making builds traceable and 
+verifiable, which is useful for **SBOM** (Software Bill of Materials) and **SLSA** (Supply-chain 
+Levels for Software Artifacts) compliance.
+
+Turning it **off** does the following:
+
+- It **disables** the inclusion of build provenance metadata in the final image.
+- This results in a **smaller** image size.
+- It may also improve **build performance** slightly.
+- However it **removes traceability**, making it harder to verify the image source 
+in security audits.
+
+**When to use it?**
+
+- You **don't need supply chain security features**
+- You **want a smaller, simpler image**.
+- You're working in a **private, trusted environment**.
+
+**When should you let provenance?**
+
+- You need to **track the origin of builds** (e.g., for compliance reasons)
+- You're in a **security-sensitive** environment (e.g., public images, regulated industries)
 
 == GitHub Action Caching
 
