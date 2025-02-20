@@ -1,0 +1,162 @@
+== CI/CD Pillars
+
+Based on theory and ideas from https://a.co/d/ic0w8JP[DevOps] practices, we can extrapolate 
+different pillars or best practices that we should aim at having on a modern software 
+solution, a solution that should ensure efficient, automated software development and 
+deployment. _Each general principle has other ideas that could go as deep as becoming 
+as the main pillar depending on perspective:_
+
+**_Automation:_**
+
+* **Build Automation:** We should automate the process of compiling code and creating 
+artifacts.
+* [#test-automation]#**Test Automation:**# We should automate tests, unit, integration and even E2E to 
+ensure code quality and catching of bugs early in the development process.
+* **Deployment Automation:** We should automate the process of deploying code to various 
+environments.
+* **Infrastructure as Code (IaC):** We should manage infrastructure through code to ensure 
+consistency and reproducibility.
+
+**_Continous Integration:_**
+
+* **Frequent Code Integration:** Developers should merge their code changes into a shared 
+repository, often multiple times a day.
+* **Automated Builds:** Every code change triggers an automated build process to compile 
+the code and create executable artifacts.
+* **Automated Testing:** When <<test-automation, automating tests>> we are also ensuring 
+that the code works as expected and doesn't introduce regressions.
+* **Fast Feedback:** Developers receive immediate feedback on the success or failure 
+of their changes, enabling quick fixes.
+
+**_Continous Delivery:_**
+
+* **Deployment Pipeline:** Automated pipelines are used to build, test, and prepare 
+code for release to production.
+* **Environment Consistency:** Code is deployed to staging or pre-production environments 
+that closely mirror the production environment.
+* **Manual Approval Gates:** Releases to production are often gated by manual approvals 
+ensuring human oversight before deployment.
+* **Reliable Releases:** The goal is to ensure that software is always in a releasable 
+state, even if deployments to production are not fully automated.
+
+**_Monitoring and Logging:_**
+
+* **Real-Time Monitoring:** Monitoring applications and infrastructure in real-time 
+to detect issues.
+* **Logging and Metrics:** Collecting logs and metrics to analyze performance and 
+troubleshoot problems.
+* **Feedback Loops:** Using feedback from monitoring and users to improve the software 
+and CI/CD process.
+
+**_Collaboration and Communication:_**
+
+* **Cross-Functional Teams:** Encouraging collaboration between development, operations, 
+and QA teams.
+* **Shared Responsibility:** Promoting a culture where everyone is responsible for 
+the quality and reliability of the software.
+* **Continuous Improvement:** Regularly reviewing and improving the CI/CD process 
+to adapt to changing needs.
+
+**_Version Control:_**
+
+* **Single Source of Truth:** All code and configuration files are stored in a version 
+control system (e.g., Git).
+* **Branching Strategies:** Using strategies like GitFlow, trunk-base development, or feature 
+branching to manage code changes.
+* **Code Reviews:** Ensuring peer reviews and pull requests to maintain code quality.
+
+**_Infrastructure as Code (IaC):_**
+
+* **Infrastructure managed through code:** Infrastructure should be architected and 
+run with tools and frameworks that allow for it to be _version controlled_, by making 
+infrastructure provisioning through machine-readable definition files, rather than 
+manual processes (e.g., Terraform, Ansible, Azure Bicep/ARM).
+
+* **Idempotency:** When having infrastructure as code, it enables for it to be repeatable, 
+scalable and trackeable. (e.g: If some infra change broke something, we can roll-back, 
+or identify a point in which a failure took place).
+
+* **Testability:** CI/CD pipelines can also be used against the IaC code-base, 
+and since everything is declarable and can be implemented like pieces of code, management, 
+reusability and trust is improved.
+
+**_Security and Compliance:_**
+
+* **CI/CD Pipelines:** Through the usage of tools we should be running security and 
+vulnerability checks in CI/CD Pipelines.
+* **Static Analysis:** Tools that we run against our code-base should be a combination of 
+static analysis, vulnerability scanning and compliance checks.
+* **Secrets Management:** We should manage and inject secrets into the CI/CD pipeline 
+with tools such as HashiCorp Vault or GitHub Secrets.
+
+=== KakeiBro's Pillars
+
+From everything laid out at <<CI/CD Pillars>>, we will extrapolate just enough for the 
+project, and establish the specific ways we are putting **into practice** the _theory_.
+
+We are focusing on three _most important ideas_:
+
+. **Automation and Efficiency:** We are working towards speed, reliability and 
+consistency by automating as much of the process as we can, _code integration, testing, 
+builds, deployments, security checks_. Lastly, we will leverage version control and 
+**declarative configurations** to maintain a single source of truth for both application 
+code and some level of the infrastructure (artifacts in the form of docker images).
++
+This is the main reason as to why we are putting so much emphasis in xref:frontend:husky[Frontend] and 
+xref:backend:git-hooks[Backend] hooks that use tools to keep in check both that the code-base 
+adheres to code conventions, but also that it builds, and that tests pass, and it's through config 
+files on each respective repository that we can shape the way tools will police our code 
+everytime we try to integrate (make a commit, push to version control, after the push is made, 
+or a PR is put up to merge into `master`).
+. **Security and Compliance at every stage:** We will embed a certain level of security 
+best practices into our CI/CD pipelines so that it checks for outdated dependencies and perhaps 
+vulnerable dependencies so that we are alerted to update. It's also through the usage of these 
+automated tools that we will avoid pushing sensitive information into our repository, on 
+top of making sure that we obfuscate sensitive information by using _GitHub Secrets_ and 
+keeping in check what information should be kept outside of the public eye.
+. **Collaboration, Monitoring, and Continous Improvement:** It's due to the automation and 
+culture that is built around the whole project that we are touching different verticals 
+of a typical organization, the idea is to always collaborate across different areas, and share 
+the responsibility of the quality and reliability. Which means that with _real-time monitoring, 
+feedback loops, and iterative processes_ we can both improve the software and the delivery pipeline, 
+this isn't just a static process that once it's up it will never change, we should always recognize 
+where a step is not bringing that much value and update it, or just remove it. Plus bringing in 
+other steps or workflows that should make the sofware and the process of developing it 
+even better.
+
+=== Github Actions
+
+It's around the <<CI/CD Pillars>> that GitHub has its own set of tools that help with 
+automation, and that is in the form of https://github.com/features/actions/getting-started[Github Actions], 
+the big advantage (and also disadvantage) is that they have **built-in abstractions**. 
+There are tons and tons of already pre-built chunks of code that take care of a specific 
+process that's a common use case when building CI/CD Pipelines, e.g:
+
+- actions/checkout@v4 = Call to automatically run logic that will clone the repository 
+to which the Action might be attached to, it also runs clean up logic by the end of the 
+flow.
+- actions/cache@v4 = Call to automatically run logic that will attempt at retrieving 
+data from a _nebulous cloud instance_ and restore in the current build machine's context, 
+it will also cache by the end of the whole flow the specific paths and all the files there 
+in the same _nebulous cloud instance_.
+- docker/build-push-action@v4 = Call to automatically run logic that takes care of running 
+docker so that it builds an image based on different parameters, tag it and then 
+push it to a specific repository.
+
+[IMPORTANT]
+====
+Making usage of these pre-built recipes also helps with more metadata and info that gets 
+outputted when an Action is done. You can get summaries on the build steps, how much 
+was cached, time it took to run specific steps and so on.
+====
+
+You can go and search for each of these actions code in Github under repos since most 
+(if not all) of them are **Open Source**. _This is a great way to keep track of new 
+versions for them as well_.
+
+Besides that, we can also inject our own custom logic as we would with any Pipeline 
+platform, but it's the way we can consume already coded pieces of code that makes our 
+`yml` files more clean and lean. It's best to make use of the built-in abstractions since 
+they follow best practices and do more than it seems, both before and after the whole flow, 
+of course, if the need to build a custom type of logic arises, we can jump in and 
+code our own scripts catered to our own specific needs.

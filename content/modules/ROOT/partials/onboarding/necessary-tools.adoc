@@ -1,0 +1,22 @@
+== Neccesary Tools
+
+* https://git-scm.com/downloads[Git]
+* https://dotnet.microsoft.com/en-us/download/dotnet/9.0[.NET 9 Runtime and SDK]
+* https://github.com/nvm-sh/nvm[nvm], (windows variant: https://github.com/coreybutler/nvm-windows[nvm-windows])
+** https://nodejs.org/en/download[Node ^20.9.0]
+* https://pnpm.io/installation[pnpm]
+* https://docs.docker.com/engine/install/ubuntu/[Docker] (on Windows you will have to leverage https://learn.microsoft.com/en-us/windows/wsl/tutorials/wsl-containers[WSL and Docker Desktop])
+* https://code.visualstudio.com/download[Visual Studio Code], (or its truly FOSS fork https://vscodium.com/[VSCodium])
+** **IMPORTANT:** It's highly advisable to use this IDE since the project setup has been catered 
+towards a workstation with this specific IDE.
+** Other options: https://neovim.io/[Neovim], https://www.jetbrains.com/webstorm/[WebStorm]
+* https://www.jetbrains.com/rider/download/#section=windows[JetBrains Rider]
+** **IMPORTANT:** Highly recommended IDE for a seamless and rich development experience.
+** https://visualstudio.microsoft.com/downloads/[Visual Studio 2022]
+*** It's recommended to have this installed just in case an error or some really obscure 
+functionality should be leveraged when it comes to working with the project. (A quick 
+jump into it, running and getting out type of flow).
+* https://cakebuild.net/docs/getting-started/setting-up-a-new-scripting-project[Cake]
+** **_NOTE:_** You don't have to manually install it, since there's a xref:onboarding/backend.adoc[_script_] 
+file at the root of the repository that will take care of installing it.
+* https://cloud.google.com/sdk/docs/install[gcloud CLI]

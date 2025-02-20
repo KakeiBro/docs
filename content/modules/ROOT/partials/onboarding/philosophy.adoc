@@ -1,0 +1,18 @@
+== Philosophy
+
+Being software a constantly changing and evolving industry, we should always aim at 
+updating both our tools and technologies, on top of our overall knowledge. Hence tools 
+and neccesary programs should be kept up to date following both **STS and LTS release 
+lifecycles**. Since the stack is based around **.NET, Node and Redis**. We should 
+always be mindful of their lifecycles:
+
+- https://dotnet.microsoft.com/en-us/platform/support/policy/dotnet-core[Dotnet Core Releases]
+- https://nodejs.org/en/about/previous-releases[Node Releases]
+- https://www.versio.io/product-release-end-of-life-eol-Redis-Redis.html[Redis]
+
+The main reason as to always stay up to date is for **security** reasons, but also 
+due to the fact that **new features** are always welcome, specially if they make previous 
+problems that we had experienced or are currently experiencing **way easier to solve**. 
+
+_Note:_ As per Node's release docs, prod apps should only use **_Active LTS_** 
+or **_Maintenance LTS_** releases.
