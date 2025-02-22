@@ -1,0 +1,610 @@
+= Logging
+
+Part of **cross-cutting concerns**, but that feed off of 
+xref:ROOT:onboarding/index.adoc#monitoring-and-logging[DevOps principles] is, **logging**. 
+Therea are tons of options, each with their own pros and cons when it comes to logging, 
+there's even a _stock logger_ for .NET.
+
+- https://github.com/serilog/serilog[Serilog] (7.4K+ stars)
+- https://github.com/NLog/NLog[NLog] (6.4K+ stars)
+- https://github.com/apache/logging-log4net[log4net] (800+ stars)
+
+We will always prefer _FOSS_, mainly due to this being maintained out of passion and 
+with the help of a community than paid options. And not just that, the most popular 
+library is usually the most maintained, the most feature rich and with the most documentation 
+out there.
+
+== Logging Best Practices
+
+Logging is a critical part of application development, but it needs to be done thoughtfully 
+to balance **usefulness**, **security** and **performance**. We have many options 
+as to **where logs should go, what levels to use, and best practices**.
+
+The best practices we should keep in mind are:
+
+* <<Logging Levels, Log Levels and When to Use Them>>
+* <<Where Should Logs Go?>>
+* <<What to Log and What Not to Log>>
+* <<Performance Considerations>>
+* <<Log Rotation Settings>>
+
+== Serilog
+
+Serilog is a really robust logging library that has tons of _sinks_. Which are in 
+essence, places you can output logs to. This goes from the very basic `Console` 
+sink, all the way to centralizing services such as _Loggly_, _ELK_ and others.
+
+The way to get Serilog and integrate seamlessly, is through the `Serilog.AspNetCore` 
+package, _so we'll install that_. Also, beware that this is a great candidate for 
+xref:net-modulith.adoc#global-usings[Global Usings].
+
+A really declarative way to add Serilog to the DI container by feeding configurations 
+through `appsettings.json` is :
+
+[source, csharp]
+----
+// Logging
+builder.Host.UseSerilog((context, configuration) => <1>
+{
+    configuration.ReadFrom.Configuration(context.Configuration); <2>
+});
+----
+<1> We have an overload of `UseSerilog` applied to the `ConfigureHostBuilder` object 
+we can retrieve from the `builder` instance. This will take that same _host_ as a first 
+parameter and the actual _serilog configuration_ configuration instance.
+<2> We can literally just load all configurations that map to names the library expects 
+**by convention** by feeding the `context.Configuration` object to its `ReadFrom.Configuration()` 
+method.
+
+This is extremely concise, but needs to be understood in order to make sense, this is 
+how the configuration file should look like:
+
+[#serilog-config]
+[source, json]
+----
+{
+    "Serilog": { <1>
+        "Using": [ <2>
+            "Serilog.Sinks.Console",
+            "Serilog.Sinks.File",
+            "Serilog.Enrichers.Environment",
+            "Serilog.Enrichers.Thread",
+        ],
+        "MinimumLevel": { <3>
+            "Default": "Information",
+            "Override": {
+                "Microsoft": "Warning", <7>
+                "System": "Warning"
+            }
+        },
+        "WriteTo": [ <4>
+            {
+                "Name": "Console"
+            },
+            {
+                "Name": "File",
+                "Args": {
+                    "path": "/logs/log.txt", <5>
+                    "rollingInterval": "Day", <9>
+                    "rollOnFileSizeLimit": true,
+                    "formatter": "Serilog.Formatting.Compact.CompactJsonFormatter, Serilog.Formatting.Compact" <8>
+                }
+            }
+        ],
+        "Enrich": [ <6>
+            "FromLogContext",
+            "WithMachineName",
+            "WithThreadId"
+        ]
+    },
+    "AllowedHosts": "*"
+}
+
+----
+<1> We will reference an object with the name "Serilog". This is the entry point, 
+everything under this will modify the behavior of Serilog's logger.
+<2> Under `Using` we can configure tons of sinks, for our purposes we will focus on 
+a Console sink and a File sink, meaning we will output logs to a **Console** and 
+to a **File**.
+<3> This is a setting that is pretty standard for all logging utilities. The application 
+itself might output tons of logs, and with different levels (Warning, Error, Information), 
+due to their <<Logging Levels, hierarchical nature>>, we can set a reference level and 
+logs will only be ouputted up until that level. And we can expand this further, (see 
+point <6>)
+<4> After configuring the namespaces for the Sinks we use, we can configure their 
+behavior under `WriteTo`, _console_ is pretty simple unless we want to configure it 
+with some specific requirement in mind.
+<5> We can then configure the `File` sink, where the log file is written to, plus 
+its <<Log Rotation Settings>>, alongside a <<Formatters, formatter>>. If we are 
+at a docker container, we might need to override it so that it can write to some path 
+at the container level and that be mounted to the host machine, but if we simply 
+want to output to the root of the source code (the root folder of the project), you 
+can start at a relative path (<first-level>/...).
+<6> Depending on what Enrichers we have declared under usings (<2>) we can add 
+extra data to each log trace, for further details you can look at the 
+<<Enrichments>> section.
+<7> Due to <<Security Concerns>>, we might want to override `Microsoft` and `System` 
+logs to only show _warnings_ and below. **Specially** for production environments, 
+otherwise we might be logging the current mode for the app (dev, prod) plus the IP 
+at which it's running and so on.
+<8> We want a log structure that's easily queryable, part of what <<Logging Theory, structured logging>> 
+brings to the table is to use _key-value pairs_ in order to make logs both more readable, 
+but also more queryable with other tools that might analyze logs. It's through one 
+formatter such as `CompactJsonFormatter` that we can get traces in a json (key-value) 
+structure.
+<9> Part of our <<Log Rotation Settings>> will be to rotate the log file daily, and 
+to switch to another file in case the file limit is reached, by default Serilog 
+has this size as **1 GB**.
+
+This is how a log would look in a file:
+
+```
+{"@t":"2025-02-21T13:24:51.7254752Z","@mt":"Failed to determine the https port for redirect.","@l":"Warning","EventId":{"Id":3,"Name":"FailedToDeterminePort"},"SourceContext":"Microsoft.AspNetCore.HttpsPolicy.HttpsRedirectionMiddleware","RequestId":"0HNAIFCFL388J:00000001","RequestPath":"/weatherforecast/","ConnectionId":"0HNAIFCFL388J"}
+{"@t":"2025-02-21T13:26:59.2669140Z","@mt":"Now listening on: {address}","address":"http://localhost:5214","EventId":{"Id":14,"Name":"ListeningOnAddress"},"SourceContext":"Microsoft.Hosting.Lifetime"}
+{"@t":"2025-02-21T13:26:59.2987332Z","@mt":"Application started. Press Ctrl+C to shut down.","SourceContext":"Microsoft.Hosting.Lifetime"}
+{"@t":"2025-02-21T13:26:59.2998827Z","@mt":"Hosting environment: {EnvName}","EnvName":"Development","SourceContext":"Microsoft.Hosting.Lifetime"}
+{"@t":"2025-02-21T13:26:59.3004469Z","@mt":"Content root path: {ContentRoot}","ContentRoot":"E:\\Documentos\\Diego\\Dev\\Projects\\KakeiBro\\kakeibro-api\\Kakeibro.API\\src\\KakeiBro.API","SourceContext":"Microsoft.Hosting.Lifetime"}
+```
+
+And this is how you would visualize them in Console:
+
+```
+[09:26:59 INF] Now listening on: http://localhost:5214
+[09:26:59 INF] Application started. Press Ctrl+C to shut down.
+[09:26:59 INF] Hosting environment: Development
+[09:26:59 INF] Content root path: E:\Documentos\Diego\Dev\Projects\KakeiBro\kakeibro-api\Kakeibro.API\src\KakeiBro.API
+```
+
+=== File keys
+
+@t:: Timestamp of the log event in ISO 8601 format.
+
+@mt:: Message template used in the log statement.
+
+@l:: Log level of the event (e.g., Information, Warning, Error).
+
+EventId:: An object containing:
++
+**Id:** Numeric identifier for the event.
+**Name:** Name or description of the event.
+
+SourceContext:: The source or context of the log event, often indicating the 
+class or component that generated the log.
+
+RequestId:: Unique identifier for the HTTP request associated with the log event.
+
+RequestPath:: The path of the HTTP request.
+
+ConnectionId:: Unique identifier for the connection associated with the log event.
+
+address:: The address the application is listening on.
+
+EnvName:: The hosting environment name (e.g., Development, Production).
+
+ContentRoot:: The root path of the application's content.
+
+MachineName:: The name of the machine where the application is running.
+
+ThreadId:: The ID of the thread that generated the log event.
+
+Each field has a reason to be there, and depending on what code is executed, different 
+logs will be generated with **more or less of all of these fields.** For example, 
+if we were to make a Request to a REST endpoint, we would be getting things such as 
+`RequestId`, `RequestPath`, `ConnectionId`. But for the Info logs of the app startup, 
+we would not. And if we turn on `Information` logs as the minimal level, we will see how 
+many of the own framework namespaces have built-in logs that are really informative 
+(when done correctly). (`Microsoft.AspNetCore.Routing.EndpointMiddleware`, 
+`Microsoft.AspNetCore.Hosting.Diagnostics`, `Microsoft.Hosting.Lifetime`). This will 
+automatically input logs in regards to when an endpoint is called, what it found, and 
+when it's over. They are great to see the flow of information, and with the extra information 
+such as a threadId, connectionId, you can even start debugging possible **thread pool 
+exhaustion** or **port exhaustion** issues that might pop up.
+
+== Logging Theory
+
+There are different ways to log information on an application, _unstructured logging, 
+structured logging, event logging, distributed/telemetry logging, application 
+performance logging (APM),_. They all have their use cases, and their pros and cons, 
+however **Serilog** focuses on **structured logging** making logs more powerful for 
+**searching, filtering and analyzing** in modern applications.
+
+In an app, logs, should be at **all appropriate levels** (From `Verbose` to `Fatal`) 
+wherever they provide value. This means:
+
+- Logging detailed debugging information (`Verbose`, `Debug`) for troubleshooting.
+- Logging high-level application flow `Info` for understanding what the application is doing.
+- Logging warnings, errors, and fatal events for issues that need attention.
+
+Some conceptual code would look like this:
+
+[source, csharp]
+----
+public void ProcessOrder(Order order)
+{
+    Log.Verbose("Starting to process order {@Order}", order); // Detailed tracing
+    Log.Debug("Order total: {Total}", order.Total); // Debugging info
+    Log.Info("Processing order {OrderId} for user {UserId}", order.Id, order.UserId); // Milestone
+
+    try
+    {
+        // Business logic
+    }
+    catch (Exception ex)
+    {
+        Log.Error(ex, "Failed to process order {OrderId}", order.Id); // Error
+    }
+
+    Log.Info("Finished processing order {OrderId}", order.Id); // Milestone
+}
+----
+
+By including all logs at all levels, we can ensure that the application is **instrumented** 
+to provide as much information as needed, depending on the situation.
+
+[NOTE]
+====
+A common best practice fails in the idea that at run-time we can switch the configuration 
+for the logger so that it stops capturing some level of logs, or starts capturing 
+another level. Based on the idea that we should always be logging as much as we can, 
+with a sense of balance of course, but by doing this we enable our application to 
+have this added functionality.
+====
+
+So, based on all this information, we can say that `Logging` and `Filtering` **should 
+be treated as separate concerns.** By separating by environment what types of logs 
+we have enabled, we add security, performance, consistency to our code and we better our development 
+efforts. We don't have to hot-rod our apps per environment, because configurations 
+take care of filtering out things we don't want (and this is literally not logging the 
+event at all, so we have less computation).
+
+=== Logging Levels
+
+Serilog follows **six standard logging levels** and these are based on the 
+https://en.wikipedia.org/wiki/Syslog[Syslog standard]. Each level represents a 
+different severity, helping us filtering logs efficiently:
+
+[cols="1,2,3", options="header"]
+|===
+| Severity | Level | Description
+
+| Fatal
+| 🔴 Critical error
+| The application crashes or cannot recover.
+
+| Error
+| 🟠 Serious issue
+| An operation failed, but the app continues running.
+
+| Warning
+| 🟡 Potential issue
+| Something unexpected happened but did not cause failure.
+
+| Information
+| 🔵 General events
+| Normal app behavior (e.g., "User logged in").
+
+| Debug
+| 🟣 Detailed debugging
+| Developer-focused logs, useful during development.
+
+| Verbose
+| ⚪ All details
+| Most detailed logs, including everything.
+|===
+
+Whilst Logging is a **critical part of application development**, it needs to be done 
+thoughtfully to balance _usefulness, security and performance_.
+
+==== Security Concerns
+
+Following the idea of the different _verbosity_ levels of logs, we can choose up until 
+what level we want to be outputted, the app might be emitting everything all up to 
+_Verbose_ however, if we set the level to be _Warning_ it will only record from there 
+upwards in the pyramid.
+
+A _best practice_ at least for production environments is to configure logging to only 
+include **"Warning" levels and above**. Specially for certain namespaces such as 
+`Microsoft` or `System`, since they output things that might end up as security and 
+privacy concerns.
+
+For example, if we run the application with everything at `Information` we might see 
+a trace such as:
+
+```
+[16:04:47 INF] Now listening on: http://localhost:5214
+[16:04:47 INF] Hosting environment: Development
+[16:04:47 INF] Content root path: E:\Documentos\Diego\Dev\Projects\KakeiBro\kakeibro-api\Kakeibro.API\src\KakeiBro.API
+```
+
+The logs might reveal:
+
+- The application is running in **Development** mode
+- The **content root path**
+- The **local endpoint** where the application is listening
+
+The idea is that we should **reduce attack surface**, since logs can inadvertently 
+expose information that attackers could use to exploit vulnerabilities. For example:
+
+- Kowing the application is in **Development** mode might indicate that it is less 
+secure or has debugging enabled.
+- File paths or environments details could help attackers understand the system layout.
+
+Besides that, many **regulations (e.g., GDPR, HIPAA)** require that senstive information 
+not be logged or exposed. By limiting logs to `Warning` and above, you reduce the risk 
+of accidentally logging sensitive data. _There will also be use cases in which we might 
+want to reduce the noise of having the verbosity of `Information` and `Debug` specially 
+for frameworks such as ASP.NET Core and Entity Framework Core.
+
+Besides that here are other considerations that you should be mindful of:
+
+- **Restrict access to logs:** Ensure only authorized personnel can access log files 
+or systems
+- **Encrypt logs:** Encrypt logs at rest and in transit, especially if they contain 
+sensitive information
+- **Rotate and archive logs:** Use log rotation to manage disk space and archive 
+old logs for compliance.
+- **Audit Logs:** Log access to sensitive resources or administrative actions.
+
+[NOTE]
+====
+Now we aren't saying we have to do all of this, but each use case, each product, each 
+organization will dictate what things should be apply when it comes to the _Logging_ 
+cross-cutting concern.
+====
+
+==== When to use Them
+
+* Use **Verbose** for extremely detailed tracing. (e.g., Logging every step of a 
+complex algorithm).
+* Use **Debug** for detailed debugging information (e.g., variable values, method 
+calls).
+* Use **Info** for high-level application flow (e.g., "User logged in", "Application 
+started").
+* Use **Warning** for recoverable issues or unexpected behavior. ("Falied to connect to 
+the database, retrying", "Invalid input detected").
+* Use **Error** for serious issues that need attention ("Failed to save user data", "External API 
+call failed")
+* Use **Fatal** only for critical failures that crash the application ("Out of memory", 
+"Critical configuration missing")
+
+=== Where Should Logs Go?
+
+Logs can be sent to one or more **destinations (sinks)** depending on the environment 
+and use case.
+
+[options="header"]
+|===
+| Destination  
+| Use Case  
+| Pros  
+| Cons  
+
+| Console  
+| Local development, debugging.  
+| Easy to set up, human-readable.  
+| Not suitable for production.  
+
+| File  
+| Production environments, long-term storage.  
+| Persistent, can be rotated and archived.  
+| Requires disk space management.  
+
+| Database  
+| Structured logging, queryable logs.  
+| Easy to query and analyze.  
+| Can impact database performance.  
+
+| Cloud Logging  
+| Distributed systems, centralized logging (e.g., Azure, AWS, GCP).  
+| Scalable, centralized, and searchable.  
+| Can be expensive at scale.  
+
+| ELK Stack  
+| Centralized logging and analysis (Elasticsearch, Logstash, Kibana).  
+| Powerful search and visualization capabilities.  
+| Requires setup and maintenance.  
+
+| Seq  
+| Structured logging with real-time search and analysis.  
+| Easy to use, great for .NET applications.  
+| Requires a Seq server.  
+|===
+
+- Use **Console** for local development and debugging
+- Use **File** or **Cloud Logging** for production environments
+- Use **structured logging** (e.g., JSON format) for better analysis and querying
+- Centralize logs in distributed systems using tools like **ELK, Seq**, or cloud 
+logging services (such as Loggly).
+
+[NOTE]
+====
+If you want to know more about _Seq_ you can head down to its https://datalust.co/seq[Web Page].
+====
+
+=== What to Log and What Not to Log
+
+A bit redundant, but just so we hone the point even further:
+
+**What to Log:**
+
+- Application milestones (e.g., "Application started", "User logged in")
+- Errors and warnings (e.g., "Failed to connect to the database")
+- Key business events (e.g., "Order placed", "Payment processed")
+- Performance metrics (.e.g, "Request completed in 200ms")
+
+**What Not to Log:**
+
+* **Sensitive information:**
+** Passwords, API keys, tokens
+** Personally Identifiable Information (PII) like SSN, Credit Card numbers
+** Health or financial data (unless properly anonymized)
+* **Excessive details:**
+** Avoid logging entire request/response payloads unless neccesary
+** Avoid logging at **Verbose** or **Debug** levels in production
+
+Use **structured logging** to log key-value pairs instead of plain text, mask or redact 
+sensitive information (e.g., replace credit card numbers with asterisks or the like), 
+and log enough context to diagnose issues (request IDs, user IDs).
+
+=== Performance Considerations
+
+We should try to use **asynchronous logging** to avoid blocking the main application 
+thread, we should also avoid logging _too_ frequently, and in high-volume systems, 
+log only a sample of events to reduce load.
+
+==== Serilog and Async Logging
+
+If you care about **performance** and **scalability**, you might want to switch to 
+async syncs. These types of logs will be written **in the background**, and if a 
+burst of log events happens these types of sinks can buffer log events and write 
+them in batches, improving throughput. Slow I/O operations (writing to a file or 
+database) won't block the application thread.
+
+**Serilog does not have async threads by default**. You need to install the `Serilog.SinksAsync` 
+package. This wraps existing sinks and makes them asynchronous by buffering log events and 
+writing them in the background.
+
+And the configuration should be updated such as:
+
+[source, json]
+----
+{
+    "Serilog": {
+        "Using": [
+            "Serilog.Sinks.Console",
+            "Serilog.Sinks.File",
+            "Serilog.Sinks.Async" // Add the Async sink
+        ],
+        "MinimumLevel": {
+            "Default": "Information"
+        },
+        "WriteTo": [
+            {
+                "Name": "Async", // Wrap the Console sink in Async
+                "Args": {
+                    "configure": [
+                        {
+                            "Name": "Console"
+                        }
+                    ]
+                }
+            },
+            {
+                "Name": "Async", // Wrap the File sink in Async
+                "Args": {
+                    "configure": [
+                        {
+                            "Name": "File",
+                            "Args": {
+                                "path": "logs/log.txt",
+                                "rollingInterval": "Day",
+                                "rollOnFileSizeLimit": true,
+                                "formatter": "Serilog.Formatting.Compact.CompactJsonFormatter, Serilog.Formatting.Compact"
+                            }
+                        }
+                    ]
+                }
+            }
+        ],
+        "Enrich": [
+            "FromLogContext",
+            "WithMachineName",
+            "WithThreadId"
+        ]
+    }
+}
+----
+As you can see, we literally wrap all our syncs under a "Async" object. And we import 
+the namespace that holds the async sinks.
+
+The `Async` sink uses a **bounded buffer** to store log events before writing them. If 
+the buffer fills up (e.g., due to a very high log volume), some log events may be 
+dropped. But we can configure the buffer size to avoid such issues, `"bufferSize`: 50000. +
+We also have the added benefit of a **graceful shutdown**, meaning that when the 
+application shuts down, the buffer ensures that are logs are written before exitting. +
+And lastly, while this improves performance by **decoupling I/O operations**, it introduces 
+overhead due to buffering and background threading, but this overhead is negligible compared 
+to benefits.
+
+**When should we consider using async logging?**
+
+- **High-volume logging:** When your application generates a large number of log events
+- **Slow sinks:** When using sinks that perform slow I/O operations (e.g., file, database, 
+or network-based sinks)
+- **Performance-critical applications:** When you need to minimize the impact of logging 
+on application performance
+
+[IMPORTANT]
+====
+When using async sinks, we will have the log operation getting sent to a _background thread_ 
+to write the log. But this **does not mean that the threadId will refer to that background 
+thread**. The origin thread will be the one captured on the trace. **ALWAYS**.
+====
+
+=== Log Rotation Settings
+
+Part of configuring a logging tool correctly is to establish good **rotation settings**. 
+Specifically to avoid **performance and storage issues**. And it's in this endeavor 
+that we can lay out two specific settings:
+
+**Rolling Interval**
+
+This controls when a new log file is created, we can configure it so that a new log file 
+is made daily, hourly, etc.
+
+**Roll on File Size Limit**
+
+Serilog has the default size limit at **1 GB**. The moment a file reaches this size 
+it will automatically create a new log file to then start saving logs to.
+
+=== Formatters
+
+There are tons of formatters that we might want to use, but one that adheres specifically 
+to _structured logging_ is the `Serilog.Formatting.Compact.CompactJsonFormatter` class. 
+
+When we looking at the <<serilog-config, Serilog Config>> we have under `formatter`, 
+a string: `"formatter": "Serilog.Formatting.Compact.CompactJsonFormatter, Serilog.Formatting.Compact"`. 
+This does two things:
+
+* Serilog.Formatting.Compact.CompactJsonFormatter: First comes the fully qualified name 
+of the actual class in charge of the formatting
+* Serilog.Formatting.Compact: Then comes the assembly (namespace) at which 
+our class is located.
+
+Serilog needs to **dynamically load this formatter at runtime**, when specifying the 
+formatter with all of this information then the library can find the correct formatter 
+within the `appsettings.json` file.
+
+**_CompactJsonFormatter_**
+
+This formatter takes care of optimizing JSON log size by removing unnecessary whitespace, 
+it also makes the logs machine-readable (structured logging) and it also has _faster 
+parsing_ compared to plain text logs.
+
+=== Enrichments
+
+Just so that we can add interchangable and customizable properties to a log trace, we 
+can configure _enrichers_. Which are in essence specific classes and configurations we can 
+stack as layers to the logger so that it outputs more information as we see fit.
+
+Since we have configured <<serilog-config, three of them>>, we will explain them here:
+
+FromLogContext:: This itself doesn't add extra properties, but enables an interface for 
+us to add any custom property we might want, this can be easily done by adding code 
+such as `LogContext.PushProperty("UserId", "12345")`, meaning that each trace will now 
+have added to it a property such as: `"UserId": "12345"`.
+WithMachineName:: This adds the machine name where the application is running, meaning 
+each trace will now have a `"MachineName": "MyComputer"` property. It's worth noting 
+that we need to have installed its NuGet package 'Serilog.Enrichers.Environment'.
+WithThreadId:: This adds the ID of the thread that generated the log event, meaning that 
+we would get a property such as `"ThreadId": 12`, this also requires for its NuGet to 
+be installed `Serilog.Enrichers.Thread`.
+
+Besides that there are other Enrichers, here's a list of others and their use cases:
+
+- Serilog.Enrichers.Context: This provides additional enrichers for working with contextual 
+data such as: `WithCorrelationId`, `WithClientIp`, `WithClientAgent`.
+
+For further details we can read up on the https://github.com/serilog/serilog/wiki/Enrichment[docs].
+
+

@@ -1,0 +1,18 @@
+== Global Usings
+
+A feature that came all the way from **.NET 8**, is the usage of `GlobalUsings`, these 
+were already present from some time now in the form of _auto-generated_ files. However, 
+it's on this https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/proposals/csharp-10.0/globalusingdirective[.NET version] 
+that it was introduced a pattern to keep files cleaner by abstracting commonly imported dependencies 
+through a _GlobalUsings.cs_ file.
+
+So any type of import that we will be using across an application is a great candidate 
+to add as a `global using <namespace>`.
+
+[NOTE]
+====
+There's an issue (at least at the time of writing) with `StyleCop.Analyzers`, and that's 
+rule **_SA1200_** on these global usings files. https://github.com/DotNetAnalyzers/StyleCopAnalyzers/issues/3404[Info]. 
+Due to this still not working as intended, we will _Turn off the rule for **this file 
+ONLY**_
+====

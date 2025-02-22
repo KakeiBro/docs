@@ -2,3 +2,4 @@
 ** xref:git-hooks.adoc[]
 ** xref:net-modulith.adoc[]
 ** xref:ci-cd-pipelines.adoc[]
+** xref:logging.adoc[]

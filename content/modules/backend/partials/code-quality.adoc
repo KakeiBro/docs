@@ -184,3 +184,10 @@ In the end, it should be discussed and documented with facts and logic when a ru
 up being ignored. Once should always aim at using as much as he can from tools and 
 recommendations, but also think for themselves.
 ====
+
+Another thing worthy of note is the fact that sometimes we might end up trying to 
+save files _With BOM_ by default (at least on Windows). We can even configure our 
+`.editorconfig` to not let pass files that have this setting applied to them. (this 
+is enforced by the `charset = utf-8` setting). If we get an error on "file format" 
+or "unexpected character", we might have to save the file that's failing the check 
+_without BOM_.

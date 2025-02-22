@@ -39,7 +39,7 @@ ensuring human oversight before deployment.
 * **Reliable Releases:** The goal is to ensure that software is always in a releasable 
 state, even if deployments to production are not fully automated.
 
-**_Monitoring and Logging:_**
+[#monitoring-and-logging]#**_Monitoring and Logging:_**#
 
 * **Real-Time Monitoring:** Monitoring applications and infrastructure in real-time 
 to detect issues.
