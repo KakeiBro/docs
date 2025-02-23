@@ -235,5 +235,5 @@ vulnerability to exceptions:
 This, for example, takes care of an `esbuild` vulnerability that won't be fixed until 
 a next major release for Vite, hence we will have to make do with the vulnerability. 
 (And also adds extra info to our end as developers with a dependency), a decision 
-in this specific use case was to make an update to V6 (for example) the moment it's 
+in this specific use case was to make an update to V6.2 (for example) the moment it's 
 available since that will get rid of this vulnerability.
