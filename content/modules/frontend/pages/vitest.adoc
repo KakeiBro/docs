@@ -1,0 +1,129 @@
+= Vitest
+
+https://blog.logrocket.com/vitest-adoption-guide/[Reference]
+
+A good idea is to work with testing in mind, (best case scenario would rely on 
+developing with TDD, specifically red-green testing). In a perfect world this is the 
+way to test, it takes more time, _but it's better in the long term_. However, 
+**this is not a perfect world**. But knowing when to apply the principles and how 
+is key when trying to get a solution to work, when trying to improve it (refactor), 
+or when developing new things faster and in a more concise way, (you can even test out 
+a bug or something pretty easily with tests).
+
+== Setup
+
+As we know, we setup the frontend with xref:index.adoc#setup[vitest], having made this 
+choice is even more fundamented since the https://react.dev/blog/2025/02/14/sunsetting-create-react-app[old ways] 
+seems to be letting the modern solutions get into the limelight.
+
+In order to install vitest and configure it we followed:
+
+. Added libraries: `pnpm add -D @testing-library/jest-dom @testing-library/react @testing-library/user-event @types/jest @vitest/ui msw jsdom vitest`
+. We created a `setupTests.ts` file at the root of the `src/` folder.
+. We created a `mocks` folder at `src/mocks`, and inside we have two files: `handlers.ts`, 
+`server.ts`
+. We added a `vitest.config.ts` file next to `vite.config.ts`. https://vitest.dev/config/#configuring-vitest[Reference], 
+we also had to add this file inside of `tsconfig.node.json` so that eslint doesn't 
+mark the file with errors. This will take priority and will override `vite.config.ts` 
+when running `vitest`
+. Heading into `tsconfig.app.json` we have to add some types so that we get extra linting 
+and help when writing tests: `"types": ["vitest/globals", "jest", "@testing-library/jest-dom"]`
+
+=== Setting up code coverage
+
+With everything laid out at <<Setup>> we can already start writing tests and with 
+the help of the `test` script run _vitest_ and get the reports and everything as expected.
+
+However, another factor that we might want to consider when integrating with testing, 
+is the fact that **coverage** can be (under the right hands) a good metric to get 
+a feel of the _safety net_ we have around our code.
+
+We can simply run
+
+```
+pnpm add -D @vitest/coverage-v8
+```
+
+Since this package is needed in order for the `vitest run --coverage` command to work 
+under the `coverage` script at `package.json`.
+
+This will create a `coverage` folder on top of generating results at the console level. 
+The `converage` folder holds an `index.html` file that you can open in a browser to 
+see the results for all files and you will see what lines of code are covered and which ones 
+aren't.
+
+=== About the flow
+
+The idea is to have a clear convention and work flow established. The project will 
+aim at following a folder structure such as:
+
+```
+- component-folder
+-- tests/
+--- component.test.tsx
+--- component2.test.tsx
+```
+
+And a test would normally follow this idea:
+
+[source, tsx]
+----
+import { render, screen } from '@testing-library/react';
+
+import App from './App';
+
+test('initializing app has correct scaffold title', async () => {
+  render(<App />); <1>
+
+  const heading = screen.getByRole('heading', { <2>
+    name: /Vite \+ React/i,
+  });
+  expect(heading).toBeInTheDocument(); <3>
+});
+
+----
+<1> We should always setup everything and then render the component.
+<2> We would then start querying different elements on the DOM depending on the 
+requirements, may it be async, sync, and always following accesibility as our way to 
+access them.
+<3> And lastly we would assert for the expected behavior on each of the components.
+
+The phylosophy will be based heavily around the opinions of the very opinionated 
+https://testing-library.com/docs/queries/about[testing-library] documentation. We should 
+aim _functional testing_. We don't have to isolate everything but build behavior 
+by integrating the minimum component to be rendered in order to test the specific 
+use case. We can obviously test many aspects of the component also, not just one 
+specific name, color or title. But the most important part: **Use Accesibility**, 
+try to test it with APIs/Entry points that a user would have, specially assistive 
+technologies, it's by trying to test through this framework that we can really account 
+for the quality of the frontend code we are building and if we have covered all the 
+neccesary use cases.
+
+We are aiming at mocking `http` calls entirely, hence we installed `msw` (Mock Service 
+Worker). We also try to work with `user-event` since it's a much more real approach 
+to an actual user interaction, and we also make use of `js-dom` for the matchers that are 
+way more concise and declarative.
+
+== Tests in hooks and pipelines
+
+At the beginning of the setup, the project didn't have tests, the step **that should 
+be at a git hook level and/or CI/CD pipeline** is a must. At least under our principles.
+
+And so after installing `vitest` and extending it to have _coverage_ we finally got 
+the testing step enabled. Some notes on this though:
+
+We have 3 scripts that leverage `vitest`:
+```
+"pTest": "vitest run --silent",
+"test": "vitest --watch",
+"coverage": "vitest run --coverage",
+```
+
+`pTest` should be run at hook/CI-CD levels always, otherwise `vitest` will run in watch 
+mode and end up stuck since it's expecting for a user input. +
+`test` can be run on local development environments, it will expect for user inputs 
+and vitest has a great interface to only run certain tests, and also detect if some code 
+changed and for tests for that code to run again.
+`coverage` this runs in _silent_ mode (figure of speech), always, it will output 
+the results to the console and to a `coverage` folder that we can then artifact or 
+something else.

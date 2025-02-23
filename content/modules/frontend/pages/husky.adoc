@@ -95,7 +95,7 @@ learn from it).
 using `grep`, but since **Windows** is not POSIX compliant, it doesn't have `grep` installed by default and 
 this accounts for that possible error case. 
 
-=== Pre=Push Script
+=== Pre-Push Script
 
 The `pre-push.js` hook script takes care of:
 
@@ -128,4 +128,31 @@ get overwritten later, and the _flow state_ might end up taking a hit. However, 
 something to version control we will run as many checks as we can so that we are not pushing bad code 
 that could end up breaking the build. **_However_**, the amount of time it takes for the frontend hooks 
 to run is way shorter than the ones at the **backend** side, hence the differences in here are not as many.
+====
+
+==== A study case
+
+_'Date: 23/02/2025'_
+
+When developing, after trying to make a push to GitHub, `pnpm audit` detected a 
+dependency that had a vulnerability detected (esbuild). https://github.com/advisories/GHSA-67mh-4wv8-2f99[Reference]. 
+It was _Moderate_, and it was already patched. The `pre-push` hook took care of letting 
+us know about that, and immediately dev effort was put in order to remedy this issue.
+
+Thanks to another command `pnpm why esbuild`, it outputted a tree of the different 
+packages we had declared plus their dependencies, `esbuild` isn't noted in `package.json`, 
+but it's a transitive dependency used by `vite` and `vitest` libraries.
+
+The way to remedy this was to run a `pnpm update`, the tool is great and it bumped up 
+everything, however if your tool wouldn't help with that you would have to go looking 
+at the output, and then editing the `package.json` file so that all versions 
+start from those updated versions only. (e.g: 1.1.0 => 1.1.3).
+
+[IMPORTANT]
+====
+However, and you have to be aware of this, the packages, sometimes might not get updated 
+up until later, for whatever reason, and this would end up blocking your flow, since 
+audit will keep complaining about the vulnerability that was found. You have two choices, 
+fail silently, or just wait. _No one in their right mind would go for the second one_. 
+**Stay on top of it still!**
 ====
