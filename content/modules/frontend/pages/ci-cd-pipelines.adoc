@@ -213,3 +213,27 @@ indeed try to optimize runs, and that is in the form that if some of the matrix 
 fails, if another one is still in the middle of running, it will stop immediately and 
 be cancelled.
 ====
+
+A way to be on top of updates is to always be checking on forums (hopefully GitHub) 
+about how the maintainers will deal with this dependency.
+
+E.g: https://github.com/vitejs/vite/pull/19389#issuecomment-2671015753[GitHub Issue].
+
+Depending on how people are looking at it you might even want to start adding the specific 
+vulnerability to exceptions:
+
+```
+  "pnpm":{
+    "auditConfig": {
+      "ignoreGhsas": [
+        "GHSA-67mh-4wv8-2f99"
+      ]
+    }
+  }
+```
+
+This, for example, takes care of an `esbuild` vulnerability that won't be fixed until 
+a next major release for Vite, hence we will have to make do with the vulnerability. 
+(And also adds extra info to our end as developers with a dependency), a decision 
+in this specific use case was to make an update to V6 (for example) the moment it's 
+available since that will get rid of this vulnerability.
