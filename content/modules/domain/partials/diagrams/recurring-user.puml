@@ -1,0 +1,16 @@
+title Internal User Use Case
+
+actor "Internal User" as iu
+package "Google Auth" {
+  actor "OAuth API" as oapi
+}
+package KakeiBro {
+    usecase "Login with E-mail" as UC1
+    usecase "Check and provide SystemToken" as UC2
+    usecase "Visualize Home" as UC3
+}
+
+iu -right-> UC1
+UC1 -down-> UC2
+oapi <-right-> UC2
+UC2 -down-> UC3

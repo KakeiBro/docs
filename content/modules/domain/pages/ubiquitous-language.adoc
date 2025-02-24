@@ -5,6 +5,20 @@ order to speak both on the dev side and on the business side of things. This pag
 is focused entirely on the key terms that both the reality of the problem and 
 the system uses and their definitions. A glossary in short.
 
+Guest::
+A user that doesn't have its internal KakeiBro user created just yet.
+[#internal-user]#Internal User::#
+A user that's saved in KakeiBro's database, it has been hydrated with Google's info 
+on the user's email and has a **System Token** assigned to it.
+[#grace-period]#Grace Period::#
+Used to refer specifically to the time a user will have to log in without needing to 
+re-authenticate with Google. The moment the user logs in through Google OAuth, a new 
+timestamp marking the end of the _Grace Period_ is created.
+System Token:: A synonym for Google's OAuth Token, however specifically under the 
+Authentication Domain this will refer to the token that's encrypted in the database.
+OAuth Token:: The raw token (without encryption) that comes all the way from Google and 
+then gets saved encrypted. Its usage for now is just nominal, no extra checks or other 
+endpoints will be called with it.
 2FA::
 Two Factor Authentication. The method used for logging in with a timed-code that 
 a user's device (usually a smartphone) generates. It adds an extra layer of security 

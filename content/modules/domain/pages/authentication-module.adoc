@@ -36,3 +36,77 @@ the user then interacts with, and after the flow is successful we can retrieve i
 in order to talk to Google APIs on the user's behalf and get basic data around them, 
 both in order to create a user, but also to log him into the system without the need to 
 ask for password or user.
+
+=== User flows
+
+[plantuml, first-time-user-uc-diagram, svg]
+....
+include::partial$diagrams/first-time-user.puml[]
+....
+
+[.text-center]
+_Figure 1._ First Time User
+
+[plantuml, recurring-user-uc-diagram, svg]
+....
+include::partial$diagrams/recurring-user.puml[]
+....
+
+[.text-center]
+_Figure 2._ Internal User
+
+As a summary, the way we will offer an entrypoint to the user will be as follows:
+
+. We will leverage Google Auth _basically for the most part_. We won't store user 
+passwords whatsoever, and will act as a **proxy** with **Google Auth**. If a user is 
+a _guest_, we will trigger a flow that talks between Google, the API, Web Client so 
+that by the end gets Google's info on the user and creates **under the hood** 
+an xref:ubiquitous-language.adoc#internal-user[Internal User] that will be saved on 
+KakeiBro's side.
+. The moment we have an internal-user, the way to interface with it, will be through 
+its e-mail. If we find that e-mail we will keep an internal check of the user token 
+that was saved there, if it's within the **_grace period_**, we will pass it onto 
+the client allowing for the user to log-in. Otherwise the _authentication with Google_  
+will have to take place again, but instead of creating an **internal user** we will 
+simply update the **token that it has assigned** to it.
+. In case the **_grace period_** has been fulfilled, we will ask the user to re-authenticate, 
+however this will just request for another OAuth token and we will update that on the already 
+existing _internal user_ table, we will also invalidate the previous token on the Google 
+OAuth side.
+
+[IMPORTANT]
+====
+We are putting as the xref:ubiquitous-language.adoc#grace-period[Grace Period] an 
+interval of **Two Weeks**.
+====
+
+**_The value_**
+
+We are leveraging automation in the way that we don't want for the user to have to fill-in all 
+their details and for us to manage all of that, we are assuming they have a gmail email, and 
+we are forcing them to use it so that we can interface with Google and get that user's info directly 
+and setup everything under the hood. _Giving a much more smooth user experience_. Besides if we have 
+to interface with Google in whatever capacity, may it be just for sending e-mails, we are 100% sure 
+that we will have the user's email in order to send emails to him.
+
+=== Security concerns
+
+Due to us having to store the Google Auth token, we have to keep it under tight wraps. 
+And so we will encrypt it, and pass it onto the client only after a handshake is 
+established and the _grace period_ since the token was created hasn't been achieved.
+
+[IMPORTANT]
+====
+And so the **e-mail** will be bumped in level of importance from just one part of the 
+authentication equation to the sole _key_. This won't work on an open-ditributed type 
+of system, but since this is aimed at _personal_ finances. We are assuming it will be 
+consumed only by a select group of people. Trying to use the system for a **SAAS** is 
+**highly discouraged.** Unless a password and extra security mechanisms are implemented, 
+_if someone gets a hold of the e-mail he can easily log into the user's environment and access 
+everything, this being financial information, which is sensitive_. Even though we have 
+**optionally** 2FA, a way to mitigate risk would be to **make 2FA mandatory**.
+====
+
+It's also worth noting that the frontend **will never save the token**. These are **stateful tokens** in 
+way, since the backend will be always giving the frontend the token it has saved (encrypted) on its side, 
+we will also have the encrypted form of the token in the web client's memory.

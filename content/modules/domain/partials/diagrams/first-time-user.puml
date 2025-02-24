@@ -1,0 +1,16 @@
+title First Time User Use Case
+
+actor Guest as g
+package "Google Auth" {
+  actor "OAuth API" as oapi
+}
+package KakeiBro {
+    usecase "Login with Google" as UC1
+    usecase "Do Google Sign-up" as UC2
+    usecase "Visualize Home" as UC3
+}
+
+g -right-> UC1
+UC1 -down-> UC2
+oapi <-right-> UC2
+UC2 -down-> UC3

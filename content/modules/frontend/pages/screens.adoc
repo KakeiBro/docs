@@ -1,0 +1,47 @@
+= Wireframing
+
+There are tons of tools to make both designs, may they be wireframing, design systems, 
+proof of concepts:
+
+- Figma
+- Penpot
+- Excalidraw
+- Draw.io
+- Wireframe.cc
+
+These are _web, open source, free, and/or cross-platform_ solutions. The cross-platform nature 
+is something really important for the project, hence we picked from these options (most 
+of them are web-based in order to bridge that gap).
+
+== Penpot.
+
+We picked penpot.
+
+https://penpot.app/learning-center#wireframing[LINK].
+
+This is a great web-based tool that's totally free, Open Source and with tutorials and 
+good enough tools for our purpose. We will be using it in order to create wireframes 
+for our web application.
+
+[NOTE]
+====
+Wireframes are low fidelity and only give us a really high level understanding of 
+how a screen would look like, things like placement of elements, accesibility, flow, 
+but for actual design this would require some sort of **Design System**. We will take 
+inspiration for some of those from these community templates:
+
+- https://www.figma.com/community/file/894542039433511203[Financial Dashboard]
+
+- https://www.figma.com/community/file/1131279674237419307[Finance web Dashboard]
+
+- https://www.figma.com/community/file/1019155319918719973[Web Login Pages]
+====
+
+== Wireframing theory
+
+Wireframes are low-fidelity skeleton designs focusing on content, interface elements, 
+navigation, and layout. They're usually grayscale line drawings with no imagery, color, 
+or attractive typography. The idea is to focus on the **user experience**, build up 
+a kind of interface inventory and hash out the rough layout and hierarchy while not 
+getting sidetracked by other design things.
+
