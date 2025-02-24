@@ -237,3 +237,9 @@ a next major release for Vite, hence we will have to make do with the vulnerabil
 (And also adds extra info to our end as developers with a dependency), a decision 
 in this specific use case was to make an update to V6.2 (for example) the moment it's 
 available since that will get rid of this vulnerability.
+
+**Outdated:** Depending on the versions, we could get the `pnpm outdated` package 
+failing instead of just adding "warnings". E.g.: `globals` went from version `15.15.0` 
+to `16.0.0` and the step now started failing. How would you fix this? Try to run a 
+`pnpm update`, if this doesn't bump it to the version that is the latest, manually 
+edit it and then run `pnpm update` again.
