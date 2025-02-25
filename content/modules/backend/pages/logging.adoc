@@ -374,10 +374,7 @@ and use case.
 
 [options="header"]
 |===
-| Destination  
-| Use Case  
-| Pros  
-| Cons  
+| Destination  | Use Case  | Pros  | Cons  
 
 | Console  
 | Local development, debugging.  
@@ -395,7 +392,7 @@ and use case.
 | Can impact database performance.  
 
 | Cloud Logging  
-| Distributed systems, centralized logging (e.g., Azure, AWS, GCP).  
+| Distributed systems, centralized logging (e.g., Azure, AWS GCP).
 | Scalable, centralized, and searchable.  
 | Can be expensive at scale.  
 
@@ -409,6 +406,7 @@ and use case.
 | Easy to use, great for .NET applications.  
 | Requires a Seq server.  
 |===
+
 
 - Use **Console** for local development and debugging
 - Use **File** or **Cloud Logging** for production environments
