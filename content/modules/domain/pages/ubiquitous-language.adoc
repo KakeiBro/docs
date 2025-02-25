@@ -7,11 +7,11 @@ the system uses and their definitions. A glossary in short.
 
 Guest::
 A user that doesn't have its internal KakeiBro user created just yet.
-[#internal-user]#Internal User::#
-A user that's saved in KakeiBro's database, it has been hydrated with Google's info 
+Internal User::
+[#internal-user]#A# user that's saved in KakeiBro's database, it has been hydrated with Google's info 
 on the user's email and has a **System Token** assigned to it.
-[#grace-period]#Grace Period::#
-Used to refer specifically to the time a user will have to log in without needing to 
+Grace Period::
+[#grace-period]#Used# to refer specifically to the time a user will have to log in without needing to 
 re-authenticate with Google. The moment the user logs in through Google OAuth, a new 
 timestamp marking the end of the _Grace Period_ is created.
 System Token:: A synonym for Google's OAuth Token, however specifically under the 

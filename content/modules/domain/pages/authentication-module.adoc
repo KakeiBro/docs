@@ -1,8 +1,13 @@
 = Authentication Module
 
+image::authentication-bc.svg[]
+
+[.text-center]
+_Figure 1._ Module's DDD Diagram
+
 It has been decided that we will integrate with Google's OAuth service, this is 
 a safe protocol that simply passes through Google's Auth Services in order to validate 
-a user, if it's successfully validated we will then just keep track of that Google 
+a user, if it's successfully validated we will then just save the Google 
 Metadata in the system. (This takes away the need to create a user through the system 
 and simply leverage a Google account). This is a **fundamental design choice**, we 
 are coupled with Google OAuth due to this.
@@ -45,7 +50,7 @@ include::partial$diagrams/first-time-user.puml[]
 ....
 
 [.text-center]
-_Figure 1._ First Time User
+_Figure 2._ First Time User
 
 [plantuml, recurring-user-uc-diagram, svg]
 ....
@@ -53,7 +58,7 @@ include::partial$diagrams/recurring-user.puml[]
 ....
 
 [.text-center]
-_Figure 2._ Internal User
+_Figure 3._ Internal User
 
 As a summary, the way we will offer an entrypoint to the user will be as follows:
 
@@ -89,6 +94,10 @@ and setup everything under the hood. _Giving a much more smooth user experience_
 to interface with Google in whatever capacity, may it be just for sending e-mails, we are 100% sure 
 that we will have the user's email in order to send emails to him.
 
+_Extra Detail:_ Another _trend_ when it comes to a smooth UX with Google OAuth is to launch 
+its flow on a small new window that mimics what a _dialog_ would look like. Once the whole 
+flow is done, the main app web page refreshes and it then launches into the home.
+
 === Security concerns
 
 Due to us having to store the Google Auth token, we have to keep it under tight wraps. 
@@ -108,5 +117,5 @@ everything, this being financial information, which is sensitive_. Even though w
 ====
 
 It's also worth noting that the frontend **will never save the token**. These are **stateful tokens** in 
-way, since the backend will be always giving the frontend the token it has saved (encrypted) on its side, 
+a way, since the backend will be always giving the frontend the token it has saved (encrypted) on its side, 
 we will also have the encrypted form of the token in the web client's memory.

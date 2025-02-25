@@ -1,5 +1,6 @@
 * xref:index.adoc[]
-** xref:screens.adoc[]
+** xref:screens/screens.adoc[]
+*** xref:screens/authentication.adoc[]
 ** xref:husky.adoc[]
 ** xref:ui-folder-structure-patterns.adoc[]
 ** xref:ci-cd-pipelines.adoc[]

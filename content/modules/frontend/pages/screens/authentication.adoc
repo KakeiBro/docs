@@ -1,0 +1,24 @@
+= Authentication Screens
+
+image::login-screens.jpg[]
+
+[.text-center]
+_Figure 1._ High Level View of Login Screens
+
+As mentioned in xref:domain:authentication-module.adoc[the domain section], we will 
+follow specific flows that are relying entirely on **Google Auth**, if we have a 
+xref:domain:ubiquitous-language.adoc#guest[Guest], we will make them go through 
+Google Auth's screens on a minimized new window, once the flow is done, the main 
+screen should refresh automatically and throw the user into the `Home` screen.
+
+If we are dealing with xref:domain:ubiquitous-language.adoc#internal-user[an internal user], 
+in case its token grace period has expired, we will just show an error message below the 
+e-mail input indicating for the user to run the Google Auth flow again, and simply 
+follow the same flow as it would be for a **_guest_**. _In case the token is still valid_ 
+we will immediately show the Home Screen.
+
+[NOTE]
+====
+Everything will appear to run on the same screens, but the backend will have to account 
+for the different situations and make the right calls and right processing of data.
+====

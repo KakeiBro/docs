@@ -15,13 +15,13 @@ of them are web-based in order to bridge that gap).
 
 == Penpot.
 
-We picked penpot.
-
-https://penpot.app/learning-center#wireframing[LINK].
+https://penpot.app/learning-center#wireframing[We picked Penpot.]
 
 This is a great web-based tool that's totally free, Open Source and with tutorials and 
 good enough tools for our purpose. We will be using it in order to create wireframes 
 for our web application.
+
+**If you want access to the penpot project please shoot an e-mail to _the DG_**.
 
 [NOTE]
 ====
@@ -44,4 +44,3 @@ navigation, and layout. They're usually grayscale line drawings with no imagery,
 or attractive typography. The idea is to focus on the **user experience**, build up 
 a kind of interface inventory and hash out the rough layout and hierarchy while not 
 getting sidetracked by other design things.
-
