@@ -14,3 +14,10 @@ the page, and also how references to different components will be resolved.
 ## Description of the folder structure
 
 - We have a `ROOT` folder with introductory details about the system.
+
+## Access to the site
+
+You can review the docs at [KakeiBro Docs](https://www.kakeibro.docs.dsbalderrama.top).
+
+In case there are updates to the docs, every day at 00:00 UTC, a CRON Action publishes 
+an updated website.
