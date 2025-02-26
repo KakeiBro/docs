@@ -1,0 +1,152 @@
+= CI/CD
+
+At the root of the https://github.com/KakeiBro/docs-playbook[docs playbook repository] 
+we have a github action in charge of building and publishing the website to GitHub 
+Pages.
+
+== Github Pages Setup
+
+First of all, we need to have configured at a **DNS level** two records that can point 
+to our GitHub Pages:
+
+- CNAME www.kakeibro.docs.dsbalderrama.top diegowrhasta.github.io
+- CNAME kakeibro.docs.dsbalderrama.top diegowrhasta.github.io
+
+The documentation as to why of these values is at: https://docs.github.com/en/pages/getting-started-with-github-pages/about-github-pages#types-of-github-pages-sites[Github Reference].
+
+_HINT:_ Depending on the user or organization access we might have to change the 
+domain for redirection. The repository that will publish the content is the reference 
+entity.
+
+And it's right after that we need a `CNAME` file that should contain in one line the 
+subdomain that will map to our GH Page. https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site#configuring-a-subdomain[Reference]
+
+**_As a concept:_** We have to be aware of the convention used by Github and the 
+https://github.com/peaceiris/actions-gh-pages[Pre-built Action] we are consuming, 
+in the sense that we will need to have a `gh-pages` branch in our repository, this 
+branch is used in order to serve the site by going into `Settings > Pages > Branch source`.
+
+[NOTE]
+====
+The `gh-pages` branch needs to be created after an initial run of the action. It's after 
+that, that _under the hood_ GitHub creates its own action in charge of reading pushes to 
+said branch and then publishing all of that into the respective urls.
+====
+
+=== Breakdown of Action
+
+include::partial$ci-cd/code/gh-action-1.adoc[]
+
+After the initial checking steps, we have to start defining if we will publish a 
+new state for the docs or not.
+
+include::partial$ci-cd/code/gh-action-2.adoc[]
+
+The pipeline is intelligent enough to try to publish a website, only when new content 
+has been added:
+
+include::partial$ci-cd/code/gh-action-3.adoc[]
+
+In case we should publish a new state for the docs site, we will leverage an already built 
+action plus some extra things:
+
+include::partial$ci-cd/code/gh-action-4.adoc[]
+
+
+[IMPORTANT]
+====
+The action will leverage the `master-playbook.yml` file since he takes care of cloning 
+the https://github.com/KakeiBro/docs[Docs Repository] in order to then build the whole 
+website out of its contents.
+====
+
+[NOTE]
+====
+The `${{ env.DOCS_REPO }}` syntax is **Github Actions Expression Syntax**, you can use 
+it to reference in the YAML file environment variables. You can use them inside of 
+workflow definitions (e.g., `run`, `env`, `if` conditions). This is handy when you 
+need some abstracted value to be referenced in these places, and also interpolating 
+values that we might need sometimes. This is different from a simple variable reference 
+that's entirely dependent on the CLI, (e.g., In bash: `echo $NAME!`).
+====
+
+=== Verifying a domain.
+
+https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/verifying-your-custom-domain-for-github-pages[REFERENCE].
+
+None of the screens there are working. However, I did make use of the _Custom Domain_ 
+section to add the `www.kakeibro.docs.dsbalderrama.top` url so that it redirects 
+to the Github Pages published site.
+
+== DNS
+
+First of all, through theory and clever usage of conventions, we can leverage an 
+already owned _apex domain_. In our case that's `dsbalderrama.top`. An **apex domain** 
+is also called a _root domain_ or _naked domain_. It doesn't have any subdomains 
+attached to it. (i.e., `example.com` is an apex domain, `www.example.com` **is not**, 
+it has the `www` subdomain attached to it).
+
+When it comes to DNS records that you can add so that you redirect different subdomains 
+and domains to hard coded IPs and or other services we have:
+
+A:: An **A Record** or _Address Record_ maps a domain to an _IPv4 address_.
+AAAA: An **AAAA Record** or _Quad-A Record_ maps a domain to an _IPv6 address_.
+CNAME:: A **CNAME Record** or _Canonical Name Record_ maps one domain name (an alias) 
+to another domain name (the canonical name). **IMPORTANT:** You can't make use of 
+this for an apex domain.
+ALIAS:: An **ALIAS Record** behaves the same as a _CNAME_ however it is allowed at the 
+root of the domain (for an apex), it is also provided by some DNS providers.
+ANAME:: An **ANAME Record** is similar to an _ALIAS_, however this is less used and it 
+might be proprietary for certain DNS providers.
+
+**_Example_**
+
+If you wanted to make `yourdomain.com` (and optionally `www.yourdomain.com`) to point 
+to a web server, we can configure the **DNS records** such as:
+
+- Add an **A Record** with the setup: `A @ 203.0.113.10`
+- Add an **AAAA Record** with the setup `AAAA 2001:db8::ff00:42`
+- Add a **CNAME Record** with the setup `CNAME www yourdomain.com`
+
+And with this the moment that anyone on the web tries to hit our domain (may it be the 
+apex) or one of its subdomains, the DNS will make sure that that URL redirects to the 
+machine that hosts the content, may it be through an IP address or another domain 
+that will of course be resolved by the end to an IP.
+
+=== Subdomains
+
+In order to "re-use" our already bought domain, you can leverage its **authority**, 
+by attaching other "paths" to it. This will result in subdomains for the _apex domain_.
+(E.g., We have the `test.com` domain, a subdomain for it can be `a.b.test.com`).
+
+Technically anything is possible, but this is where engineering and logic come into place. 
+If we want organize content in a hierarchical manner, isolating functionality, also 
+integrating with search engines so that they treat two URLs differently (separate 
+entities), plus an easier management of multiple services or microsites under the same 
+_root domain_. We can leverage subdomains, meaning, separating everything with dots, 
+every dote will denote a new **subdomain level**
+
+**Example:** `brother.app.test.dev`
+
+* `brother`: This is the first-level subdomain. It could represent:
+** A specific product, feature, or service (e.g., a tool named "Brother").
+** A team, project, or environment (e.g., a development team named "Brother").
+** A user or organization (e.g., a user account or namespace).
+* `app`: This is the second-level subdomain. It suggests that the site is related 
+to an application, likely a web or mobile app.
+** It could be a dashboard, interface, or tool for managing or interacting with 
+the "Brother" service.
+* `test`: This is the third-level subdomain. It indicates that the site is likely 
+a testing or staging environment.
+** It's probably not the production version of the app but rather a sandbox for 
+development, QA, or experimentation.
+* `dev`: This is the top-level domain (TLD). While .dev is a valid TLD, it's often 
+associated with development-related sites.
+** It reinforces the idea that this is a development or testing environment.
+
+As you can see, you can give it meaning depending on your own requirements.
+
+Having something like `brother-app.test.dev` would change that structure, having now 
+only three levels to the sub-domain (still under the same TLD though). Depending 
+on branding, technical requirements, and just plain accepted conventions we can 
+decide what will be the rules for our project.

@@ -1,0 +1,38 @@
+[source, yml]
+----
+- name: Deploy static content to GH Pages
+  if: ${{ env.CHANGED == 'true' }}
+  uses: peaceiris/actions-gh-pages@v4
+  with:
+    github_token: ${{ secrets.GITHUB_TOKEN }} <1>
+    publish_dir: ./build/site <2>
+    cname: ${{ env.CNAME }} <3>
+
+- name: Store latest commit for next run
+  if: ${{ env.CHANGED == 'true' }}
+  run: |
+    echo "$LATEST_COMMIT" > .latest_commit <4>
+    git config --global user.name "github-actions" <5>
+    git config --global user.email "github-actions@github.com"
+    git add .latest_commit
+    git commit -m "Updates docs latest commit SHA" <6>
+    git push
+----
+<1> The pre-built action to "publish to Github pages" is only in charge of setting up 
+a specific layout under a `gh-pages` branch, it will need a token so that it can run all 
+the neccesary logic to setup the branch and commit files to it. It's also neccesary 
+for our `permissions` set to `write` way up above so that we can make all these changes 
+on the repo.
+<2> Since `antora` creates the deployable build at a specific folder structure, we will 
+point the action to that specific folder with `index.html`
+<3> In order to configure our custom domain name correctly we will now feed the value 
+we got from the `CNAME` file at the root of the repo in the previous steps to its 
+`cname` option.
+<4> And lastly we need to now keep track of the commit (the representation of the docs 
+repo) from which we just published. And so the `LATEST_COMMIT` value is saved to the 
+`.latest_commit` file on the repo.
+<5> We have to setup credentials that identify that the change here was done by 
+a github action (always do things right, tracking changes will be beneficial one way 
+or another).
+<6> And we then commit the change we are setting for the latest SHA file and pushing 
+it.

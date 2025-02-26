@@ -1,0 +1,46 @@
+[source, yml]
+----
+name: CRON for Docs Page deployment
+
+on:
+  schedule: <1>
+    - cron: "0 0 * * *" # Runs at 12:00 AM UTC daily
+  workflow_dispatch: # Allows manual trigger
+
+env:
+  DOCS_REPO: https://api.github.com/repos/KakeiBro/docs/commits/main <2>
+  NODE_VERSION: 22 <3>
+
+permissions:
+  contents: write <4>
+
+jobs:
+  check-external-repo:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout this repository
+        uses: actions/checkout@v4
+
+      - name: Fetch latest commit from external repo
+        run: |
+          LATEST_COMMIT=$(curl -s ${{ env.DOCS_REPO }} | jq -r '.sha') <5>
+          echo "Latest commit: $LATEST_COMMIT" <6>
+          echo "LATEST_COMMIT=$LATEST_COMMIT" >> $GITHUB_ENV <7>
+----
+<1> The action at the playbook repository is a CRON job, it will run at 00:00 UTC 
+every day. But it also has been setup to take in manual triggers in case it needs 
+them.
+<2> We will leverage Github's API to retrieve RESTful API responses, this is an endpoint 
+specifically to get a a structure with the commits that have been made to the https://github.com/KakeiBro/docs[docs repository].
+<3> We will worth the most modern LTS version (to date), Node 22
+<4> We will have to commit a `.latest_commit` file at the root of the repository to 
+keep track of the SHA, this is the main mechanism to detect if the docs have been 
+updated and then trigger a new publish.
+<5> We initially run a `GET` to the Github API endpoint, and from the response payload 
+we extract what's under the `sha` key, this refers to the latest commit, and that is 
+saved under a `LATEST_COMMIT` variable.
+<6> We then print that SHA value with a message.
+<7> And lasty a good pattern that was used here is to inject into the runner's env 
+variables this extracted variable's value. This is a great way to share state across 
+multiple steps. The anatomy of it is: `<NAME_OF_ENV_VARIABLE>=<VALUE> >> $GITHUB.ENV`

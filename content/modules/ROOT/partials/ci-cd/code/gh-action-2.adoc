@@ -1,0 +1,42 @@
+[source, yml]
+----
+- name: Retrieve previous commit
+  id: get_previous_commit
+  run: |
+    CACHE_FILE=".latest_commit" <1>
+    if [[ -f $CACHE_FILE ]]; then <2>
+      PREVIOUS_COMMIT=$(cat $CACHE_FILE) <3>
+    else
+      PREVIOUS_COMMIT="" <4>
+    fi
+    echo "Previous commit: $PREVIOUS_COMMIT"
+    echo "PREVIOUS_COMMIT=$PREVIOUS_COMMIT" >> $GITHUB_ENV <5>
+
+- name: Compare commits and exit if unchanged
+  run: |
+    if [[ "$LATEST_COMMIT" == "$PREVIOUS_COMMIT" ]]; then
+      echo "Docs without change. Skipping web page generation." <6>
+    else
+      echo "CHANGED=true" >> $GITHUB_ENV
+      echo "CNAME=$(cat ./CNAME)" >> $GITHUB_ENV <7>
+    fi
+----
+<1> We initially define a runtime variable `CACHE_FILE`, since we mentioned that at the 
+root of the repo we will have a `.latest_commit` file, this is the path to it.
+<2> We then run a check to see if the file exists.
+<3> If it does, we save under a `PREVIOUS_COMMIT` variable the value of that file, (it should 
+be one sole line with a SHA).
+<4> If we don't find a file, we simply save an empty string under the same variable name, 
+this enables idempotency to the script.
+<5> After printing the previous comit SHA value, we also make sure to save that same 
+value as an env variable.
+<6> In a subsequent step we make a comparison between the previously injected 
+`$LATEST_COMMIT` and `$PREVIOUS_COMMIT` variables. We are comparing a saved SHA 
+from a possible previous _RUN_ at which a page was published and the at-the-moment 
+SHA of the repository. In case the values are the same, we just print a message indicating 
+this.
+<7> In case the SHA values vary, meaning that since the last time we published a 
+page, changes have been made, we will save a `CHANGED` and `CNAME` environment 
+variables so that we use them later. The first one being a flag and the second one 
+a value we will need to consume later when configuring our custom domain when publishing 
+our GH Page.

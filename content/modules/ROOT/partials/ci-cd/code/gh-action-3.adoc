@@ -1,0 +1,36 @@
+[source, yml]
+----
+- name: Setup pnpm
+  if: ${{ env.CHANGED == 'true' }} <1>
+  uses: pnpm/action-setup@v4
+  with:
+    version: latest
+
+- name: Set up Node.js
+  if: ${{ env.CHANGED == 'true' }}
+  uses: actions/setup-node@v4
+  with:
+    node-version: ${{ env.NODE_VERSION }}
+    cache: "pnpm"
+    cache-dependency-path: "./pnpm-lock.yaml"
+
+- name: Install dependencies
+  if: ${{ env.CHANGED == 'true' }}
+  run: pnpm i --frozen-lockfile
+
+- name: Run main logic
+  if: ${{ env.CHANGED == 'true' }}
+  run: |
+    echo "Docs have changed! Publishing new state..."
+    npx antora ./master-playbook.yml <2>
+----
+<1> A _pain point_ with GitHub Actions is that you can't configure them to just skip 
+over everything after a certain point. And so, since we want to short-circuit any subsequent 
+steps in case no change to the docs was detected, we will have to add a conditional step 
+instruction in every subsequent step.
+<2> We do a normal setup of dependencies we need to work with node modules, (by taking 
+advantage of caching and pnpm). After we have setup everything, we run the `antora` 
+module and then use as a playbook reference the `master-playbook`. This will take 
+care of cloning the https://github.com/KakeiBro/docs[docs] repository and then bringing 
+everything together to then have an artifact that's a folder `build/site/`. In here we 
+have an `index.html` site
