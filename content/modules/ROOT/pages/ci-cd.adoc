@@ -1,8 +1,8 @@
 = CI/CD
 
 At the root of the https://github.com/KakeiBro/docs-playbook[docs playbook repository] 
-we have a github action in charge of building and publishing the website to GitHub 
-Pages.
+we have a github action in charge of building and publishing this docs website to 
+GitHub Pages.
 
 == Github Pages Setup
 

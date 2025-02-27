@@ -69,7 +69,9 @@ https://cloud.google.com/iam/docs/keys-create-delete#console[Reference]
 
 The easiest way to get this is by using the GCloud Console web app and downloading the 
 service key as a `.json` file. This should never be uploaded anywhere, but the github 
-secrets vault. We should paste the whole json file as the value of the key.
+secrets vault. We should paste the whole json file as the value of the key. (After the 
+generation of one, it will be automatically downloaded, however, you can't redownload it 
+ever again. So be mindful of this condition).
 
 _Note:_ Be sure to be under the correct google account and the correct project when generating 
 this service key.
