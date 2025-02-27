@@ -1,0 +1,156 @@
+== Firebase
+
+Firebase has a service called `Hosting`. Following its https://firebase.google.com/docs/hosting/?hl=en&authuser=0#implementation_path[documentation] 
+we can integrate firebase into our web app repository.
+
+In the Firebase Console it's best to create a project. We have created one for the 
+whole kakeibro app.
+
+[NOTE]
+====
+A good practice so that we adhere to DevOps practices, is to have the firebase CLI 
+in the form of a node package, meaning it should be declared on our `packages.json` 
+but as a **devDependency**, since this package has nothing to do with the user experience, 
+it's for deployment purposes. This also integrates better with CI/CD pipelines due to 
+the fact that we can cache later that dependency. Instead of wanting to run it with a 
+global tool that doesn't cache unless we do more work.
+====
+
+* Head into the web app folder
+* (With the Firebase CLI intalled) run `firebase init`
+* Type `Y`
+* Select `Hosting`
+* `Use an existing project`
+* Select the project that you have in Firebase
+* Since vite outputs a bundle to a `./dist` folder, we will put that as the _public 
+directory_.
+* Accept `Configure as SPA`
+* Do not setup GitHub Actions (we will do that on our own)
+* Do not overwrite the `index.html` (we should have ran a build already)
+* Right after this whole setup we should have a `.firebaserc` and `firebase.json` 
+files in our repo. We should commit those, they are key instruments when running a 
+`firebase deploy`
+* Add a script at `package.json` so that it automates things (you can name it `deploy`). 
+It should build the whole project and then run the firebase CLI tool.
+
+[IMPORTANT]
+====
+Due to the nature of Firebase and just to test out the script ourselves, it would be 
+best to run locally the `pnpm deploy` command. To see if we are able to deploy our 
+app to Firebase. This can definitely be automated with IaC, such as Terraform, however 
+for our purposes, it will be a one-time manual configuration so that we make sure we 
+deploy the app correctly and then configure a custom domain. Wait for SSL providing and 
+everything, and then relying on the action to deploy it after that. (We shouldn't have 
+to run it manually anymore). More info at <<ci-constraints, parameters for scripts>>.
+====
+
+After we have wired up the firebase domain through a `CNAME` record for our custom 
+domain, (don't forget to add 2 records one for the `www` subdomain and another one 
+without it). We should be able to hit both `kakeibro.dsbalderrama.top` and 
+`www.kakeibro.dsbalderrama.top` and get our app right there running.
+
+**NOTE: ** Don't forget to add the `.firebase/` folder to `.gitignore`.
+
+[#firebase-token]
+[NOTE]
+====
+**DISCLAIMER:** The next paragraph's approach has been deprecated, and might break in the future. The project 
+uses a <<Danger of deprecation of `--token`, service account>>, however for the purposes of having the docs with more information 
+these pieces of information are kept.
+
+In order to generate a token so that our action can then run a deploy. We can run 
+`firebase login:ci`. This will open up a web browser with Google OAuth so that we log 
+in with the account that has access to the Firebase project, we have to consent 
+and everything. After the flow is done, we will get the token printed in the console 
+screen. **SAVE THIS AS A GITHUB SECRET AND NEVER TOUCH IT AGAIN**. We leverage it 
+on the github action to log into firebase with the token so that we can then run the 
+deploy.
+====
+
+[#ci-constraints]
+The whole `firebase login:ci` command generates a token specifically to be run on a 
+pipeline and it is by design enforced to be passed only at the `firebase deploy --only hosting --token $FIREBASE_TOKEN` 
+level. We can't log into Firebase with this token, and it's in this specific endeavor that 
+the `deploy` script has to be modified so that we can pass to the `firebase` command 
+all of the different parameters `tsc -b && vite build && firebase deploy --only hosting`. By adding 
+the last parameter we will be setting by default for the command to always run the deployment 
+only for _hosting_ and we can then attach to it extra arguments. And so, when we run 
+`pnpm run deploy --token ${{ secrets.FIREBASE_TOKEN }}` we will have all of those parameters after `deploy` 
+attached to the `firebase deploy --only hosting ...` section of the `deploy` script.
+
+**_Small note:_** A good practice, to avoid issues, would be the usage of `--only hosting`, 
+so that the whole project only tries to deploy to the SPA section of the whole Firebase 
+project. There might be times at which running that without the flag will attempt 
+to deploy to other services and end up breaking something.
+
+=== About www domain vs clean name
+
+Firebase will need to have a second domain added to it so that it redirects the 
+`www` subdomain to our `non-www` subdomain. (Github Pages sets that up automatically).
+
+A good recommendation is **at the DNS level** to setup the second CNAME record to point 
+to the non-www CNAME.
+
+The DNS configuration side **isn't enough though**, **the server** needs to take care of 
+**redirecting things**, the HTTP redirection if you will. Hence we will have to make these 
+two configurations ourselves. One on Firebase (the server), and another on our 
+DNS provider.
+
+=== Danger of deprecation of `--token`
+
+When running the previous `--token` parameter approach we will get a warning stating:
+
+```
+Authenticating with `--token` is deprecated and will be removed in a future major version of `firebase-tools`. Instead, use a service account key with `GOOGLE_APPLICATION_CREDENTIALS`: https://cloud.google.com/docs/authentication/getting-started
+```
+
+This indicates that we should move away from using this CI token and instead use the 
+xref:backend:ci-cd-pipelines.adoc#gcp[service account keys] approach. We should be 
+managing different keys for different services, since using a master `.json` credentials 
+key is a one-point-of-failure. If it gets compromised, **ALL OF YOUR SERVICES ARE COMPROMISED**. 
+We have to download it as a `.json` file, and then upload it as a secret to the repository 
+(the text).
+
+Firebase projects end up as **different GCloud projects**, the best way to manage their 
+credentials is to head to the _Project Settings_ and under the _Service Accounts_ 
+tab we can then click on the _All service accounts_ link. It will take us to a GCloud 
+instance in where we _might_ see an already configured Service Account for us. We 
+can then head down to **Service Accounts** in the GCloud pannel and generate a key for 
+that service account that has access to our firebase project in charge of the website.
+
+It's with that in mind that the command can get rid of the `--token` parameter, 
+and we can leverage env variables and the secret text like this:
+
+[source, yml]
+----
+- name: Setup service account credentials
+  run: echo '${{ secrets.GCLOUD_SERVICE_ACCOUNT }}' > $HOME/gcloud-service-key.json <1>
+
+- name: Set GOOGLE_APPLICATION_CREDENTIALS
+  run: echo "GOOGLE_APPLICATION_CREDENTIALS=$HOME/gcloud-service-key.json" >> $GITHUB_ENV <2>
+
+- name: Build and Deploy to Firebase
+  env:
+  run: pnpm run deploy
+
+- name: Cleanup service account file
+  run: rm -f $HOME/gcloud-service-key.json <3>
+----
+<1> The main thing is that the env variable is expecting a `.json` file path, not the 
+actual json string. Hence we have to copy the contents for a brief second to a file.
+<2> It's then that we save as an env variable (so that it persists for the next steps), 
+the path to the file we saved with the service account json string.
+<3> Lastly, as a security measure, we will delete the temporary file with our credentials 
+as a form of cleanup.
+
+References:
+
+- https://devy.in/post/how-to-setup-gitlab-cicd-pipeline-to-deploy-nextjs-app-to-firebase[Blog]
+- https://stackoverflow.com/questions/75653962/firebase-token-deprecated-in-ci-cd-gitlab[Gitlab example]
+
+[NOTE]
+====
+You can edit the levels of access for a service account by heading to `IAM` selecting 
+the service account you want to modify, and with the pencil icon. You get a menu 
+to modify the levels of access of the account.
+====

@@ -1,0 +1,54 @@
+== Possible audit blockers
+
+When running the `pnpm audit` step and we do find a vulnerability for a package, 
+then that immediately returns a **1**. And a pipeline will fail, whilst this is great 
+because our controls are in check, it might end up blocking development if we don't do 
+something about it, and this is due to the fact that sometimes this package might 
+be a _transitive dependency_. And until that gets fixed in our direct referenced packages 
+with a version bump, we will be stuck, this depends on other's and we can't block 
+the development flow due to this.
+
+And so, an options is to fail silently, **but staying on top updates**, this can be 
+done as easily as `pnpm audit || echo 'Failing audit silently, waiting for esbuild bump'`.
+
+We could even go further and automate this, but nevertheless, this is just part of 
+the workflow that's established, some of the pains we have to accept and how to still 
+get value out of everything that was setup.
+
+[NOTE]
+====
+As mentioned in <<CI>>, we have a **matrix**, one cool thing about GitHub is that it will 
+indeed try to optimize runs, and that is in the form that if some of the matrix instances 
+fails, if another one is still in the middle of running, it will stop immediately and 
+be cancelled.
+====
+
+A way to be on top of updates is to always be checking on forums (hopefully GitHub) 
+about how the maintainers will deal with this dependency.
+
+E.g: https://github.com/vitejs/vite/pull/19389#issuecomment-2671015753[GitHub Issue].
+
+Depending on how people are looking at it you might even want to start adding the specific 
+vulnerability to exceptions:
+
+```
+  "pnpm":{
+    "auditConfig": {
+      "ignoreGhsas": [
+        "GHSA-67mh-4wv8-2f99"
+      ]
+    }
+  }
+```
+
+This, for example, takes care of an `esbuild` vulnerability that won't be fixed until 
+a next major release for Vite, hence we will have to make do with the vulnerability. 
+(And also adds extra info to our end as developers with a dependency), a decision 
+in this specific use case was to make an update to V6.2 (for example) the moment it's 
+available since that will get rid of this vulnerability.
+
+**Outdated:** Depending on the versions, we could get the `pnpm outdated` package 
+failing instead of just adding "warnings". E.g.: `globals` went from version `15.15.0` 
+to `16.0.0` and the step now started failing. How would you fix this? Try to run a 
+`pnpm update`, if this doesn't bump it to the version that is the latest, manually 
+edit it and then run `pnpm update` again.

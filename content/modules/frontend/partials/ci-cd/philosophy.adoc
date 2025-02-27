@@ -1,0 +1,61 @@
+== Philosophy
+
+A robust CI/CD pipeline for any modern application is crucial for ensuring smooth 
+development, testing, and deployment processes. This specific project takes both 
+personal experience, but also nuggets of wisdom coming from across experts in the field, 
+a source for the ideas applied is: https://www.amazon.com/Hands-Continuous-Integration-Delivery-software-ebook/dp/B07F2KCM75/ref=sr_1_1?crid=BDMDGLVNFVVG&dib=eyJ2IjoiMSJ9.v9neNylqRvqVl8MRAQV2Eetm9ahsqk0XnKJIYkuCKQRFYSRwsoC2KDl40AHiyOX2j5h-7-FzRIqbFwfDJwPaakrOYH_NoHUZud6Ll1BkUmAq0CWLJboij5BqgGKZom-n.lyWaPFA_05QDnljjt2BUT4ykH4G5eTElz8-jDr7zJjQ&dib_tag=se&keywords=Hands-On+Continuous+Delivery&qid=1739626506&sprefix=hands-on+continuous+deliver%2Caps%2C182&sr=8-1[Hands-On Continuous Integration and Delivery].
+
+In short, manual processes, and desorganized processes should be mitigated as much 
+as possible, and it's through communication with different areas of the business that we 
+can find areas of improvement. **Automation** should be a key word when it comes to 
+relegating processes that are grunt-work in nature and that only take away from more 
+important tasks for a developer. Besides that, we should have a clear flow of work 
+in order for the software we build to be fast on delivery and health checking. If 
+someone coded something that breaks the system, we should pick up on that as quickly 
+as possible.
+
+Whilst we already have put a set of automation steps focused on each workstation through 
+xref:husky.adoc[Husky], there are definitely many ways to circumvent those, and we shouldn't 
+have to rely entirely on each developer's willingness to adhere to protocol but a centralized 
+and (in theory) incorruptible source of thruth. Hence there are other mechanisms to 
+keep tabs on code quality and correctness (according to a in-house set of rules).
+
+- Pull Requests
+- CI/CD Pipelines
+
+Due to the nature of this project, **pull requests** will definitely won't be leveraged 
+as much, unless the need or opportunity for them arises, however they should be still 
+be in place so that a whole team can have a look at code changes that are about to be 
+integrated into the codebase and give feedback, and also pick up on possible issues 
+or opportunities for improvement.
+
+But, **Pipelines**, on the other hand will be leveraged in the form of **GitHub Actions**, 
+there will be one pipeline for **PRs** and another pipeline for CI in **main**. (It's 
+here that you can see that PRs and Pipelines should also come in hand and have arguments 
+when it comes to trimming down checks for one use case and then adding others for another).
+
+Even if a developer has already go through the **layers we have setup** in the form of 
+**hooks**, we will have pipelines with **some of the same steps** plus others specific 
+to it so that the process is faster when running on the Remote Repository platform (GitHub).
+
+The idea behind **Continous Deployment** is _Agile_ in nature. Always be building 
+something, testing, and publishing it. It will depend highly on the _team and product_ 
+if you want to get up until that point, since there might be justified use cases in 
+which you only want to go all the way to **Continous Delivery**. And by some manual 
+intervention, the deployment has to be done by someone assigned to said task. 
+
+**In our case**, we are going all the way to deployment, but be aware that this is 
+extremely taxing in nature, since we are running on a build machine. So be sure to 
+optimize when pipelines should run and not incurr in them becoming a hassle and source 
+of frustation, when they should be there to make things easier.
+
+[NOTE]
+====
+And in that endeavor of making the pipelines to be as fast as possible, we will leverage 
+caching, and specifically caching with `pnpm`. PNPM is already a tool aimed at 
+reusing node modules if we have them across multiple projects, and it also has optimized 
+performance built-into it. With that plus a correct usage of **module caching** we 
+can aim at having cold starts for our frontend builds, but later builds to be much faster 
+since they will leverage all previously installed node modules, instead of having 
+to always install them from scratch.
+====

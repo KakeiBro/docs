@@ -1,0 +1,72 @@
+== Master Pipeline
+
+This consists of **two jobs**, "Lint, Build, Check", "Deploy to Firebase"
+
+=== CI
+
+Steps:
+
+* Run on a base Ubuntu image, and from the root of the repo, head down to the `./kakeibro-web` folder.
+* Establish a strategy: Run in parallel two instances of the pipeline (_matrix_), 
+one with Node 20 and another one with Node 22
+** _A good practice is to test out the build process in different node versions_. 
+Since we are following xref:ROOT:onboarding/index.adoc#philosophy[best practices], 
+we should be testing on the _Active LTS_ and _Active Maintenance_ versions of node.
+* We checkout the code with a pre-defined `actions/checkout@v4` action
+** _Note:_ At the time of writing the pre-defined actions are at **v4** this could 
+end up getting updated later, and we should be mindful of this in case there are 
+actions that are still on other versions such as **v3**.
+** _Note 2:_ We have to use these pre-defined sub-routines since github encourages it 
+and are meant to **abstract** really general use cases such as cloning the repo first, 
+(the build machine will always start with an empty state), they get the added bonus 
+of having other syntax that can build on top of the base functionality without us having 
+to code it from scratch (e.g: Fetch specific commits, optimize performance, attaching submodules)
+* We install `pnpm` with `pnpm/action-setup@v4`. Just like the previous step it will 
+work with a pre-defined script aimed at abstracting logic and making the file look cleaner
+* We install node with `actions/setup-node@v4`, in this specific instance we want to tie 
+it to `pnpm`, and due to the _matrix_ we setup at the beginning we have to now query the `matrix.node-version` 
+variable in order to accomodate node with the respective node version, besides that we can setup 
+**caching** by simply pointing at it to use a strategy that caches with `pnpm`. We 
+also have to point specifically to the `pnpm-lock.yaml` file so that the pipeline and the 
+build machine can read it and check their own cache of packages and if all the hashes match 
+it will then use the cache instead of trying to install everything again from scratch
+** **IMPORTANT:** It is for these types of use cases that comitting the `-lock` file can 
+be extremely helpful.
+* We install all the dependencies with `pnpm` and with the `--frozen-lockfile` flag so 
+that it doesn't try to overwrite something on the lockfile.
+** _Note:_ `pnpm i --frozen-lockfile` is recommended to be used on CI/CD pipelines, to ensure 
+consistency. The command install dependencies without modifying the `pnpm-lock.yaml` 
+file.
+* We then run **ESLint** by leveraging the scripts that are also leveraged by xref:husky.adoc[Husky].
+* We then run a **build** to check that all the code is okay and nothing broke.
+* We then leverage a script called `debug-check.js` that's under a `scripts` folder at 
+the web app folder. This is used by both _Husky_ and now the CI/CD pipeline in order to 
+check for `console.log` or `debugger` statements in the code and failing if it does find 
+them.
+* We then run a **check for outdated packages**, but we fail silently, still the table of 
+all dependencies that are outdated will show in the pipeline summary.
+* We will then run a script that **checks for package versions that have vulnerabilities** 
+in them that were found.
+
+=== Deploy
+
+Steps:
+
+* This will depend on the previous <<ci-2, CI>> step, if it doesn't fail then deploy will 
+run normally
+* Run checkout recipe
+* Run pnpm recipe
+* Run node repice, **with a specific node version**, we are aiming at staying up to 
+date and with the most modern yet in _Active LTS_ or _Maintenance LTS_ from Node, 
+and so we setup node with **Version 22**. Same setup to take from cache for modules 
+if we have them there.
+* Install dependencies with frozen-lockfile
+* Retrieve service account details from the repository's secrets vault and save it 
+under a temporary `.json` file so that the firebase CLI can pick up on it and use it 
+for authorization/
+* Run the `deploy` script. Since the firebase CLI is installed through the `package.json` 
+we should have it present, however due to the nature of this being a build machine we 
+need the service account .json credentials in a file and its path referenced through an 
+`env` variable (`GOOGLE_APPLICATION_CREDENTIALS`)
+** _NOTE:_ We should have configured the <<firebase-token, token on GitHub>>. Otherwise 
+the flow will fail since Firebase won't authorize the machine to do the deploy.
