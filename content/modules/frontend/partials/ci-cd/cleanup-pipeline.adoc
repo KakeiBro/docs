@@ -1,0 +1,100 @@
+== Cleanup Pipeline
+
+As mentioned in the xref:ci-cd-pipelines.adoc#pr-pipeline[PR pipeline] and the 
+xref:ci-cd-pipelines.adoc#master-pipeline[Master pipeline], we leverage caching in 
+order to make builds faster, but that doesn't come "for free", we need to be well 
+aware that this has to live somewhere, and whether we use `pnpm` or the action for 
+xref:ci-cd-pipelines.adoc#github-action-caching[general purpose caching]. The moment 
+the cache varies, may it be due to new dependencies detected, or other external factors, 
+we will have to generate new caches. And they will start adding up, if we have no use 
+for old caches we **should clean them up**. And automation of this cleanup is key.
+
+It's with this in mind that all repositories have a cache cleanup **CRON Action**, 
+the one specific for the web app is this:
+
+[source, yml]
+----
+name: Cleanup Action Caches
+
+on:
+  schedule:
+    - cron: "0 0 * * *" <1>
+  workflow_dispatch: <2>
+
+permissions:
+  actions: write <3>
+
+jobs:
+  clean-cache:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get caches list
+        id: list-caches
+        run: |
+          response=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \ <4>
+            -H "Accept: application/vnd.github+json" \ <5>
+            "https://api.github.com/repos/${{ github.repository }}/actions/caches") <6>
+          echo "$response" | jq -r '.actions_caches | sort_by(.created_at) | reverse' > caches.json <7>
+
+      - name: Delete old caches
+        run: |
+          latest_cache_id=$(jq -r '.[0].id' caches.json) <8>
+          jq -c '.[1:] | .[]' caches.json | while read -r cache; do <9>
+            cache_id=$(echo $cache | jq -r '.id') <10>
+            curl -X DELETE -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/${{ github.repository }}/actions/caches/$cache_id" <11>
+          done
+        if: success() <12>
+----
+<1> This Action will be configured as a CRON that runs at 00:00 UTC every day.
+<2> In case we need to manually trigger the Action it has the respective flag so that 
+the option is enabled
+<3> Every action has its own token injected into its runtime, however it's by default 
+`read-only`. And to delete caches we need for that to also inherit `write` permissions.
+<4> As mentioned in <3>, the Action will have injected a token for it, it will be saved 
+under `secrets.GITHUB_TOKEN`, we will leverage the GitHub API in order to retrieve our cache 
+list and clean it up, we have to send an Auth token so that the API grants us access and 
+responds correctly
+<5> `application/vnd.github+json` is the media-type from which github responds with, 
+so we are configuring it to accept the response with that.
+<6> Another part of already built-in utilities is the fact that under the `github` 
+namespace, we can retrieve variables such as `.repository`. The value of said variable 
+will be a unique ID, that in the realm of the GitHub API references our current repository 
+at which the Action is running.
+<7> Whenever we have saved under a variable something, a good practice is to always 
+reference it with quotation marks to avoid issues with spaces or special characters, 
+it's the result of printing the contents of the variable (that has the response from the 
+GitHub API) that we pipe into `jq` a utility to work with JSON strings, another good 
+practice with it is to use the `-r` flag so that it won't interpret backslashes as escape 
+characters (so that we don't manipulate the response). With `jq` we can pipe different 
+instructions that help us navigate a json structure: `.actions_caches | sort_by(.created_at) | reverse` 
+firstly points to the `.actions_caches` property of the JSON object, (we know it's an array), 
+and so we tell the tool to try to sort what's unde the key by a `created_at` field (if the structure 
+is not an array this would fail), and lastly after the items have been sorted, we will reverse that 
+result, since we want for the **most recent** entry at the beginning (the top). In the end 
+the final form of what we transformed is saved under a `caches.json` file.
+<8> We have no technical use for this line but just so that the pipeline breaks 
+if it doesn't find a valid entry and so that we can see the value on GitHub, we 
+will retrieve the latest cache ID under a variable
+<9> The source is a JSON array, and so in order to iterate over it and do something with 
+the data, we have to apply `jq -c '.[1:] | .[]' caches.json`, which leverages `jq` 
+again in order to read the structure and with `-c` it will make sure that each JSON 
+object will be in one separate line, and with `.[1:]` we try to slice the array to 
+exclude the first element (the latest cache entry), it's then the result of that, 
+that we iterate over and output it as a separate JSON object with `.[]`. To that whole 
+result that `jq` yields we then apply **Bash shell constructs**, we are applying a 
+a loop because `read` is a command that reads a single line from the input, applied 
+like this we basically are configuring the `read` to be reading line-by-line and saving 
+those contents under a `cache` variable, the moment there are no more lines to read then 
+the loop will end.
+<10> We then use `jq` _again_ to extract the specific `id` field of the **sole** JSON 
+object that we should have at `cache`, and we save that `id` value under a `cache_id` 
+variable.
+<11> Just as the previous step we will then hit a GitHub API endpoint in charge of deleting 
+a cache entry, we send the Action's token plus the ID for the cache that we extracted.
+<12> Part of GitHub Actions, use this if you want to enforce a condition on a step 
+_or job_, so that if the previous step/job was successful then this step can run, 
+otherwise it won't. A good way to enforce short-circuits, still brittle and you have 
+to add it to each step or job that comes after the declaration of the pivot element. 
+(Same idea as our xref:ROOT:ci-cd.adoc#gh-action-3[conditional execution for deployment])

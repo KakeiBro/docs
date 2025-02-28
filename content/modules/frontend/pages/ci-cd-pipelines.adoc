@@ -17,6 +17,8 @@ include::partial$ci-cd/pr-pipeline.adoc[]
 
 include::partial$ci-cd/master-pipeline.adoc[]
 
+include::partial$ci-cd/cleanup-pipeline.adoc[]
+
 include::partial$ci-cd/firebase.adoc[]
 
 include::partial$ci-cd/audit.adoc[]
