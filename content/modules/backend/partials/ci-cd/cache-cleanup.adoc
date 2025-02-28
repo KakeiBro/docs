@@ -1,0 +1,86 @@
+== Cache Cleanup Pipeline
+
+Following the same principle as in the xref:frontend:ci-cd-pipelines.adoc#cleanup-pipeline[frontend cache cleanup] 
+pipeline, we will apply a clean up on the backend, **_with its specific conditions 
+taken into account_**. 
+
+**_NOTE:_** The explanation of the code in here is less verbose as in the aforementioned 
+**frontend cache cleanup link**, for further breakdown of what each command does 
+**please refer to said page**, this is advisable as the knowledge is built on top 
+of said pipeline.
+
+Meaning, that we have two types of cache, one for the docker builds (with a `buildx` 
+tag. E.g., Linux-buildx-v...), and another for the NuGet packages. E.g., (Linux-nuget-v...). 
+And so our script will have to discriminate between these two types and keep the latest 
+caches for each respectively.
+
+[source, yml]
+----
+name: Cleanup Action Caches
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+permissions:
+  actions: write
+
+jobs:
+  clean-cache:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get caches list
+        id: list-caches
+        run: |
+          response=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/caches")
+          echo "$response" | jq -r '.actions_caches | sort_by(.created_at) | reverse' > caches.json
+
+      - name: Filter and delete old caches
+        run: |
+          jq -c '[.[] | select(.key | startswith("Linux-buildx"))]' caches.json > buildx_caches.json <1>
+          jq -c '[.[] | select(.key | startswith("Linux-nuget"))]' caches.json > nuget_caches.json <2>
+
+          latest_buildx_cache_id=$(jq -r '.[0].id' buildx_caches.json)
+          latest_nuget_cache_id=$(jq -r '.[0].id' nuget_caches.json) <3>
+
+          jq -c '.[1:] | .[]' buildx_caches.json | while read -r cache; do <4>
+            cache_id=$(echo $cache | jq -r '.id')
+            curl -X DELETE -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/${{ github.repository }}/actions/caches/$cache_id"
+          done
+
+          jq -c '.[1:] | .[]' nuget_caches.json | while read -r cache; do <5>
+            cache_id=$(echo $cache | jq -r '.id')
+            curl -X DELETE -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/${{ github.repository }}/actions/caches/$cache_id"
+          done
+        if: success()
+      
+      - name: Cleanup files
+        run: |
+          rm -f buildx_caches.json
+          rm -f nuget_caches.json
+----
+<1> Since we have 2 types of cache now that are important, we can't just filter the latest 
+and delete the rest, that would effectively make it so that our pipelines always have 
+to rebuild the cache. And so we apply clever filtering techniques, based on an already 
+existing raw list of cache entries that are ordered in descending order (most to least recent). 
+We will then iterate over each element, select its `key` field and then filter out 
+if the value of said key starts with `Linux-buildx`. This will effectively spit out all 
+the docker caches (already ordered). This will be then saved on a temporal `buildx.caches.json` file.
+<2> Just like in <1> we are iterating over the main list with all caches and then just filtering 
+the ones that start with `Linux-nuget`. A key part of the command here is at the 
+square brackets that sorrounds the whole result of `jq` **_[ ]_**. We need to wrap 
+the whole result in square brackets so that the result is also a JSON Array, if this is 
+not set in place we will get a structure that's not a JSON array and we won't be able 
+to iterate over it.
+<3> Just as a good practice we are extracting the latest IDs for both cache types
+<4> And so, we now slice the specific `buildx` json file with its cache entries, we then 
+iterate over those and delete all the old caches.
+<5> Same as in <4> we will slice the most recent cache in the `nuget` json file, and 
+all the remaining cache entries will then be deleted by using the Github API.

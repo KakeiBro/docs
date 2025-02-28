@@ -14,6 +14,8 @@ include::partial$ci-cd/pr-pipeline.adoc[]
 
 include::partial$ci-cd/master-pipeline.adoc[]
 
+include::partial$ci-cd/cache-cleanup.adoc[]
+
 include::partial$ci-cd/docker-image.adoc[]
 
 include::partial$ci-cd/google-cloud-run.adoc[]
