@@ -26,7 +26,7 @@ to an account.
 OAuth::
 The protocol that is used with Google Services in order to authenticate with them 
 and get back a _yes_ or _no_ response for a login attempt.
-Bookkeeper::
+[#bookkeeper]#Bookkeeper::#
 This is the base user that will use the system the most and runs most of the 
 workflows. Adds, edits, deletes data alongside querying it in its various forms.
 SysAdmin::

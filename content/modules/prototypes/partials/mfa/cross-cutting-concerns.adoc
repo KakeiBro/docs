@@ -4,36 +4,36 @@ The `Base32Key` is a shared secret between the server and the user's 2FA app. If
 else obtains this key, they can generate valid TOTP codes for that user. To 
 mitigate this risk:
 
-- Only display the QR code temporarily. Once the user sets up their 2FA, the secret 
+* Only display the QR code temporarily. Once the user sets up their 2FA, the secret 
 key should never be displayed again.
-- Avoid logging or caching the key anywhere (e.g. logs, temporary files).
-- When storing the `Base32Key` in your database, always encrypt it to protect it at rest. 
+* Avoid logging or caching the key anywhere (e.g. logs, temporary files).
+* When storing the `Base32Key` in your database, always encrypt it to protect it at rest. 
 Use a robust encryption library, to encrypt and decrypt the secret key securely.
-- Ensure HTTPS Everywhere, if the `otpAuth://` ORL or QR code is ever transmitted over 
+* Ensure HTTPS Everywhere, if the `otpAuth://` ORL or QR code is ever transmitted over 
 the network (e.g., to a front end), ensure the connection is secured using **HTTPS**. 
 This prevents interception of the secret key during setup.
-- Once the user scans the QR code and sets up 2FA, avoid showing the secret key or 
+* Once the user scans the QR code and sets up 2FA, avoid showing the secret key or 
 QR code again. If the user loses access, you can generate a new key but never reuse the 
 old one.
-- Don't log the Key or URL: Ensure you don't log sensitive details like the base32Key 
+* Don't log the Key or URL: Ensure you don't log sensitive details like the base32Key 
 or the otpauth:// URL.
-- If an attacker obtains the secret key, they could generate codes indefinitely. 
+* If an attacker obtains the secret key, they could generate codes indefinitely. 
 To mitigate this:
--- Consider implementing device-based trust where users must re-authenticate for new 
+** Consider implementing device-based trust where users must re-authenticate for new 
 devices.
--- Use the secret key **only for authentication** and avoid repurposing it for other 
+** Use the secret key **only for authentication** and avoid repurposing it for other 
 use cases.
-- **Server-Side Key Verification:** Instead of exposing the base32Key to the frontend, 
+* **Server-Side Key Verification:** Instead of exposing the base32Key to the frontend, 
 you can handle the TOTP directly on the server side.
--- Generate and store the secret key on the server.
--- Create and display only the QR code (without sending the raw base32Key to the user).
--- Validate user-entered TOTP codes directly against the server-stored secret key.
-- **Backup Codes for Recovery**
--- Provide users with one-time backup codes during setup to allow them to regain access 
+** Generate and store the secret key on the server.
+** Create and display only the QR code (without sending the raw base32Key to the user).
+** Validate user-entered TOTP codes directly against the server-stored secret key.
+* **Backup Codes for Recovery**
+** Provide users with one-time backup codes during setup to allow them to regain access 
 if they lose their 2FA device. These codes should:
---- Be stored hashed in your database, like passwords.
---- Only be shown to the user during setup.
---- Be invalidated upon use.
+*** Be stored hashed in your database, like passwords.
+*** Only be shown to the user during setup.
+*** Be invalidated upon use.
 
 === Platform Independence
 
