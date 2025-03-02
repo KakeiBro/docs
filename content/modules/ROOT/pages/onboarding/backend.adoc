@@ -18,16 +18,15 @@ some OS-dependent CLI.
 and https://cakebuild.net/docs/running-builds/runners/dotnet-tool#bootstrapping-for.net-tool[Bootstraping Cake], 
 we have setup the <<bootstrap-scripts, bootstrap scripts>> at the root of the repository, 
 and inside of the `Kakeibro.API` solution folder we have a `build.cake` file present, besides 
-a **tool manifest** at `.config`. 
-+
+a **tool manifest** at `.config`. +
 We first ensure that cake is installed and once it is, we run it and it'll then go 
 and look for `build.cake` and run all of that code there.
 ** _NOTE:_ Any extensions needed for this automation step can be done with all of the 
 concepts that have been laid out.
 * The Cake script is configured in order to copy the hooks that are at `git-hooks` 
 to the repository's `.git/hooks` folder. Nothing inside of `.git` is committed to VC. 
-Hence this intermediary step takes place so that as an initial setup, cake takes care of 
-cleaning, building and testing the freshly cloned solution, and it then sets up hooks 
+Hence this intermediary step takes place so that as an initial setup, **cake** takes care of 
+cleaning, building and testing the freshly cloned solution, and then it sets up hooks 
 for the dev. **No manual invervention needed.**
 ** And of course, if you are **extending the hooks** for whatever reason, you should edit 
 the **hook files that are being tracked** and then by **running Cake** they will immediately 

@@ -9,9 +9,9 @@ Whilst `husky` helps bridging the gap between UNIX and Windows workstations, we 
 setup a bit further when using raw _Git Hooks_ since depending on the OS the commands 
 that run will not work on a case-by-case basis.
 
-This is the order of steps used to setup the hooks:
+This is the order of steps used to setup a new hook:
 
-. Create a hook file at `kakeibro-api/githooks/`
+. Create a hook file at `kakeibro-api/git-hooks/`
 . You can test if the hooks are working as intended by running `git commit --amend --no-edit` 
 followed then by `git push --force` (you could also just roll-back if you don't want 
 to push anything).
