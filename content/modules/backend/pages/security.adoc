@@ -1,11 +1,11 @@
-== Security
+= Security
 
 Most of the advice we will be following will be taken out directly from OWASP's cheatsheets. 
 
 _OWASP:_ A foundation that focuses on improving the security of software through its 
 community-led open source software projects.
 
-=== Encryption
+== Encryption
 
 https://cheatsheetseries.owasp.org/cheatsheets/Cryptographic_Storage_Cheat_Sheet.html#introduction[Reference].
 
