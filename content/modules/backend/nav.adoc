@@ -3,3 +3,4 @@
 ** xref:net-modulith.adoc[]
 ** xref:ci-cd-pipelines.adoc[]
 ** xref:logging.adoc[]
+** xref:security.adoc[]

@@ -32,3 +32,7 @@ workflows. Adds, edits, deletes data alongside querying it in its various forms.
 SysAdmin::
 This is a super-user that gets access to user management, CRUDs of _bookkeepers_, 
 reset credentials.
+[#auth-handshake]#Auth Handshake::#
+This is the term defined to the _background_ process that takes place between the 
+KakeiBro API and Google's Services to find a corresponding e-mail registered on their 
+side and exchanging information and confirmation of said user.

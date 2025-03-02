@@ -1,0 +1,15 @@
+== Security
+
+Most of the advice we will be following will be taken out directly from OWASP's cheatsheets. 
+
+_OWASP:_ A foundation that focuses on improving the security of software through its 
+community-led open source software projects.
+
+=== Encryption
+
+https://cheatsheetseries.owasp.org/cheatsheets/Cryptographic_Storage_Cheat_Sheet.html#introduction[Reference].
+
+We will apply encryption principles based around _asymetric keys_ for really 
+sensitive data that we are assuming the responsibility of. (_A recommendation though is 
+to simply avoid storing as much as possible_.)
+

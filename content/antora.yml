@@ -8,6 +8,7 @@ asciidoc:
 nav:
 - modules/ROOT/nav.adoc
 - modules/domain/nav.adoc
+- modules/database/nav.adoc
 - modules/prototypes/nav.adoc
 - modules/backend/nav.adoc
 - modules/frontend/nav.adoc
