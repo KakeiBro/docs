@@ -8,3 +8,7 @@ include::partial$centralized-build-props.adoc[]
 include::partial$centralized-packages.adoc[]
 
 include::partial$global-usings.adoc[]
+
+include::partial$class-libraries.adoc[]
+
+include::partial$module-architecture.adoc[]

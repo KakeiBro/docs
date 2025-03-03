@@ -36,7 +36,7 @@ sink, all the way to centralizing services such as _Loggly_, _ELK_ and others.
 
 The way to get Serilog and integrate seamlessly, is through the `Serilog.AspNetCore` 
 package, _so we'll install that_. Also, beware that this is a great candidate for 
-xref:net-modulith.adoc#global-usings[Global Usings].
+xref:net-modulith/net-modulith.adoc#global-usings[Global Usings].
 
 A really declarative way to add Serilog to the DI container by feeding configurations 
 through `appsettings.json` is :

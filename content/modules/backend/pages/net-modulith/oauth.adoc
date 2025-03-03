@@ -1,0 +1,16 @@
+= OAuth
+
+Since we are using **_Google OAuth_**, we have to make some configurations on the GCloud 
+Console side so that it integrates seamlessly with our application(s).
+
+As mentioned in the xref:prototypes:o-auth.adoc[prototypes section], we will have 
+to register _Authorized JavaScript origins_ plus _Authorized redirect URIs_, and since 
+we have setup with CI/CD our domains and services already, we are now 100% sure as 
+to what should be registered there. Under the **Google Auth Plataform** section on 
+GCloud Console:
+
+* Frontend URI (Javascript): `https://kakeibro.dsbalderrama.top`
+* Backend URI (redirect URIs): `https://kakeibro-api.dsbalderrama.top`
+
+We should download **_the Client's JSON secret_**. And we should start leveraging that 
+in order to talk to Google and allow us to start serving OAuth screens.

@@ -97,7 +97,7 @@ And this is fine, but depending on the size of the project (solution) having to 
 this in every single project is cumbersome rather than useful. Luckily we have extensions 
 on the framework and IDE levels that help centralize these types of cross-cutting concerns. 
 
-Hence, there's a xref:net-modulith.adoc#centralized-build-props[Directory.Build.props] 
+Hence, there's a xref:net-modulith/net-modulith.adoc#centralized-build-props[Directory.Build.props] 
 file at the root of the solution, this is an `xml` file that will take care of 
 setting up the enforcement of specific settings at a solution level. Think of it 
 as a super-layer that gets applied to **all solution's projects**. When it comes to our 
@@ -128,7 +128,7 @@ get installed in all projects:
 include::partial$code/analyzers-central-packages.adoc[]
 
 For further information in regards to how packages are being centrally managed, 
-you can head down to xref:net-modulith.adoc#centralized-nuget-packages[Directory.Packages.props].
+you can head down to xref:net-modulith/net-modulith.adoc#centralized-nuget-packages[Directory.Packages.props].
 
 === Shaping rules to one's liking
 

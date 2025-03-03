@@ -1,0 +1,85 @@
+= Folder Structure
+
+The folder structure will adhere to **Vertical Slice Architecture** focused around the 
+separation of concerns under a `Modulith` solution. Which means:
+
+[NOTE]
+====
+This isn't the full folder structure, but a small representation of how it's logically 
+ordered.
+====
+
+[listing]
+----
+📂 src
+  📂 Common <.>
+    📂 Common.Library <.>
+      📂 Interfaces <.>
+        📄 IEndpointDefinition.cs
+        📄 IModuleInstaller.cs
+        📄 IServiceInstaller
+      📄 EndpointDefinitionExtensions.cs <.>
+      📄 ModuleInstallerExtensions.cs
+      📄 ServiceInstallerExtensions.cs
+  📂 Modules <.>
+    📂 Modules.Authentication <.>
+        📂 GoogleOAuth <.>
+          📄 GoogleAuthEndpoints.cs <.>
+          📄 GoogleAuthRepository.cs <.>
+        📁 LogIn
+          📄 LogInEndpoints.cs
+          📄 LogInRepository.cs
+        📁 Data <.>
+        📄 AssemblyReference.cs <.>
+        📄 AuthenticationModuleInstaller.cs <.>
+        📁 ServiceInstallers <.>
+          📄 RepositoryServiceInstaller.cs <.>
+    📂 Modules.Users (and so on...)
+  📁 KakeiBro.API <.>
+----
+<.> We will have a _Common_ type of Class Library that all modules and apps can reference 
+with base interfaces, extensions and classes that help us adhere to the rules of how all the 
+architecture will be written.
+<.> The `shared` class library will be denominated `Common.Library`.
+<.> Inside of it we will have really high level and foundational interfaces that will 
+help us declare the different classes that a module should have in order to declare the 
+composition steps that will register both its endpoints, plus its services.
+<.> All the `EndpointDefinitionExtensions`, `ModuleInstallerExtensions`, `ServiceInstallerExtensions` 
+are the ones powering **_assembly scanning_**, making it possible for us to simply reference the different 
+`AssemblyReference` markers on different modules, and from that one target, we can start composing the whole 
+module by registering its services, its endpoints and so on.
+<.> We will have a `Modules` folder in which all our module's will live (as Class 
+Libraries completely independent of each other).
+<.> Taking the Authentication Module as an example, we will have created a folder for 
+the whole Module Class Library
+<.> And it's inside _nested folders_ that we will have the **_slices_** in the form of 
+use cases. Each Use Case (user flow) for the module will contain all that it's neccesary 
+to it (from the endpoint all the way to the database specific concerns).
+<.> Each Use case will have generic named files, for example for all endpoints related 
+to the use case we will be following the pattern `<UseCase>Endpoints.cs`.
+<.> And just like in the _endpoints_ case we will follow the same idea with a file for 
+a repository, `<UseCase>Repository.cs`. It's worth noting that we chose to use the 
+name of `Repository` however this could easily be named something else (such as `Service` 
+or `BusinessLogic`), we are not leveraging the _Repository_ pattern in its entirety 
+mainly because we have no use case (at least for now).
+<.> Since the module has to deal with its own set of database technical concerns, we will 
+have a _Generic_ folder named `Data` under the module, this wil encapsulate both 
+the Entity objects that map to the database, plus migrations and other database centric 
+operations.
+<.> Since we will leverage assembly scanning for the registering of many of the components 
+that make out our whole module, we should always have an `AssemblyReference.cs` file there, 
+a marker, **WITHOUT ACTUAL FUNCTIONAL CODE**.
+<.> An interesting concept that we will also make use of is the concept of a **_Module Installer_**, 
+since all of our modules will be class libraries at their core, we need for an actual 
+application to make use of their functionalities, and so, in order to register the 
+module we will use the concept of **_Install_**. Which in short means that all the 
+interfaces to which an app can hook into this module and register it, all of its 
+endpoints, services, database concerns should be _injected_ through these interfaces.
+<.> And in the spirit of keeping things simple, clean and organized, we will also separate 
+by technical concern each registration for each different concern under a `ServiceInstallers` 
+folder.
+<.> For example, all repository registration logic should be under a specific `RepositoryServiceInstaller.cs` 
+file.
+<.> It's also at the same level of the `Modules` folder that we will have the actual 
+Web API (the app) that will then install of the modules to it through the interfaces that 
+we have laid out previously.

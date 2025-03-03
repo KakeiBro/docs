@@ -6,4 +6,4 @@ The **_basic user_**, the one that is key in order for the whole system to funct
 The module in concept is pretty simple, only cares about CRUD operations in regards 
 to bookkeepers, there are _"super users"_ in charge of this called **SysAdmin**. 
 These users have to be created manually (by the hands of a developer), although 
-there are xref:backend:net-modulith.adoc[automations] around it.
+there are xref:backend:net-modulith/net-modulith.adoc[automations] around it.

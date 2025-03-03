@@ -51,7 +51,7 @@ And it's also important to state clearly that Redis is a **key-value** store. It
 relational in nature, and it doesn't enforce schemas like SQL databases. It's through 
 the usage of its own convention in the form of _key paths_ that we will be able to store our documents 
 with a clear logical order in mind. It will be through this usage that we will also 
-adhere to the xref:backend:net-modulith.adoc[modular monolith] architecture pattern, 
+adhere to the xref:backend:net-modulith/net-modulith.adoc[modular monolith] architecture pattern, 
 specifically on the concern of isolating data between modules.
 
 Another important convention we will always aim at adhering to is **to never physically 

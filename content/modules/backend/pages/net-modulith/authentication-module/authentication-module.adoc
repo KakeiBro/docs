@@ -1,0 +1,5 @@
+= Authentication Module
+
+The authentication module specifically will be in charge of all Google Auth work 
+plus saving and maintenance of data specific to the users. (LogIn, register, updating).
+

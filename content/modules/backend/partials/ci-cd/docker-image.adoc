@@ -32,7 +32,7 @@ After the `app` user convention it was later published a new convention, hence w
 don't have to use `USER app` but `USER $APP_UID`. https://github.com/dotnet/dotnet-docker/issues/4506[Reference].
 ====
 
-It's also worth noting that with xref:net-modulith#centralized-nuget-packages[Centralized Package Management]. 
+It's also worth noting that with xref:net-modulith/net-modulith.adoc#centralized-nuget-packages[Centralized Package Management]. 
 `Dockerfile`s have to have some additions to the default structure:
 
 ```

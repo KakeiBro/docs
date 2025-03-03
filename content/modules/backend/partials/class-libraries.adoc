@@ -1,0 +1,34 @@
+== Libraries
+
+Since we will require some level of dependencies in order to connect to the Web API, 
+plus our own technical concerns we will make sure to install only the neccesary 
+Nuget packages as to keep our module lean and lightweight. This would be things 
+such as:
+
+* Microsoft.Extensions.Configuration
+* Microsoft.Extensions.DependencyInjection
+* Microsoft.AspNetCore.Routing
+* Microsoft.AspNetCore.Http.Abstractions
+
+**HOWEVER:** By enabling the ASP.NET Core abstractions in the project through the addition 
+of a specific section in its `.csproj`:
+
+```
+<ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+</ItemGroup>
+```
+
+Our class libraries will have access to all the types, APIs, and dependencies provided 
+by the ASP.NET Core framework. Without the need of installing libraries individually.
+
+Instead of copying referenced assemblies into the project's output directory, 
+it relies on the shared framework that is installed on the _target machine_ or 
+included in the _runtime_. Reducing the size of the output. (_It also helps with 
+consistent versioning_).
+
+**BIG NOTE:** We are taking this decision since our class libraries are specifically 
+designted to work with `ASP.NET Core`. And since we are abstracting away endpoint 
+registration, we need access to the framework's specific types and features. But most 
+importantly, _we want to avoid bloating our projects with redundant copies of assemblies_.
+
