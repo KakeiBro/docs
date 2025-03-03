@@ -59,14 +59,14 @@ the tech stack).
 
 One other concept that was used in order to make the decision was of **Screaming Architecture**. 
 The pattern itself focuses on the idea that the code bases we build, extend and maintain 
-should constantly be giving queues to the developers about the _Domain_ of the software. 
+should constantly be giving cues to the developers about the _Domain_ of the software. 
 We add extra buffers and overhead to the development process when trying to separate 
 our units of code into technical concerns (BI, Repository, etc). Whereas the way to 
 really understand and keep a mental map of the software, is by connecting all of the 
-technical implementations **with the actual problem the software solves.**. It is by 
+technical implementations **with the actual problem the software solves.** It is by 
 doing this that we add more intuitive and extendable choices for a developer.
 
-This obviously has to be architected with intent, and not just following like _dogma_, 
+This obviously has to be architected with intent, and not just following a set of rules like _dogma_, 
 every software is different, and tons of variables come into play when coming up with 
 the solution, _that not always is the best_, but we have to get our foot off the starting 
 line somehow. We should follow **iterative principles** and always aim at making the 
