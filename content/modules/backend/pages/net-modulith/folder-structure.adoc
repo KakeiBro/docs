@@ -29,6 +29,7 @@ ordered.
         📁 LogIn
           📄 LogInEndpoints.cs
           📄 LogInRepository.cs
+        📁 Config <.>  
         📁 Data <.>
         📄 AssemblyReference.cs <.>
         📄 AuthenticationModuleInstaller.cs <.>
@@ -62,6 +63,8 @@ a repository, `<UseCase>Repository.cs`. It's worth noting that we chose to use t
 name of `Repository` however this could easily be named something else (such as `Service` 
 or `BusinessLogic`), we are not leveraging the _Repository_ pattern in its entirety 
 mainly because we have no use case (at least for now).
+<.> In case we might require any sort of module configuration files, and/or classes, we will 
+aggregate them under a `Config` folder.
 <.> Since the module has to deal with its own set of database technical concerns, we will 
 have a _Generic_ folder named `Data` under the module, this wil encapsulate both 
 the Entity objects that map to the database, plus migrations and other database centric 

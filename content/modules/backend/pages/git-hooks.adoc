@@ -29,9 +29,13 @@ _at least for the time being_ leveraging `pre-commit` and `pre-push`, which befo
 save the commit to VC it will police our changes.
 ====
 
+[#hooks]
 The **pre-commit** hook we have at the `git-hooks` folder of the repository is **cross-platform**, 
 it will run both on **_Windows and Linux_**, depending on the OS it will then execute either 
 `pre-commit.sh` or `pre-commit.ps1`.
+
+The **post-commit** hook we have at the `git-hooks` folder is also cross-platform 
+and will execute the respective script based on the OS.
 
 The **pre-push** hook we have at the `git-hooks` folder is also cross-platform and will 
 execute the respective script based on the OS.
@@ -53,6 +57,19 @@ The `pre-commit.ps1` script takes care of doing the following tasks:
 * Checking code format (according to conventions)
 * Building the solution
 * Running all tests
+* Running `appsettings.json` OAuth credential sanitization by blanking out sensitive fields, 
+and backing up the contents for the `post-commit` hook to then finish this specific 
+flow
+** _NOTE_: Some links in regards to windows specific issues with jq and passing things with 
+double quotes:
+*** https://stackoverflow.com/questions/67636275/why-jq-does-not-compile-when-i-pass-a-powershell-variable[jq doesn't compile]
+*** https://github.com/jqlang/jq/issues/2640[double quote fix]
+
+The `post-commit.ps1` script takes care of doing the following tasks:
+
+* Work in conjunction with the `pre-commit.ps1` file so that once its backup `appsettings.json` 
+contents are saved in a different file, this then restores all of that into the 
+original `appsettings.json` file and deletes the backup file
 
 The `pre-push.ps1` script takes care of doing the following tasks:
 

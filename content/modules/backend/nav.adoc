@@ -3,6 +3,7 @@
 ** xref:net-modulith/net-modulith.adoc[]
 *** xref:net-modulith/oauth.adoc[]
 *** xref:net-modulith/folder-structure.adoc[]
+*** xref:net-modulith/authentication-module.adoc[]
 ** xref:ci-cd-pipelines.adoc[]
 ** xref:logging.adoc[]
 ** xref:security.adoc[]

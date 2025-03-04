@@ -1,0 +1,42 @@
+= Authentication Module
+
+The authentication module specifically will be in charge of all Google Auth work 
+plus saving and maintenance of data specific to the users. (LogIn, register, updating).
+
+== Google Credentials
+
+From a previous spike that resulted in the xref:prototypes:o-auth.adoc[Google OAuth Prototype], 
+we know that we require some configuration in GCloud Console, however, the one thing we 
+need from the credentials `.json` is a `client_id`, nothing else. Due to this fact, 
+we will simplify the configuration info that the module requires, meaning that the 
+configurable aspects we will get are:
+
+[source, json]
+.KakeiBro.API/appsettings.json
+----
+"GoogleAuth": {
+    "ClientId": "",
+    "RedirectUri": "",
+    "JavascriptOrigin": "",
+    "AuthorizationEndpoint": "https://accounts.google.com/o/oauth2/v2/auth",
+    "TokenEndpoint": "https://oauth2.googleapis.com/token",
+    "UserInfoEndpoint": "https://www.googleapis.com/oauth2/v2/userinfo",
+    "RevokeTokenEndpoint": "https://oauth2.googleapis.com/revoke",
+    "RefreshTokenEndpoint": "https://oauth2.googleapis.com/token"
+}
+----
+With its respective configuration POCO on the project, we will leverage the `Options` 
+pattern for configurations. It's also worth noting that due to the sensitive nature 
+of the information we have applied xref:git-hooks.adoc#hooks[post-commit and pre-commit] 
+scripts that makes sure to work in conjunction so that they blank out the `ClientId`, 
+`RedirectUri` and `JavascriptOrigin` fields every-time we are trying to make a commit. 
+(And then also restore whatever values were there initially so that the dev experience 
+doesn't end up negatively affected).
+
+[IMPORTANT]
+====
+In a normal working dev workstation, we should always have the `appsettings.json` 
+file marked as "changed". We should never have it as fully comitted and without 
+changes, since for dev purposes we would need the different credentials filled in, 
+but never comitted to VC.
+====
