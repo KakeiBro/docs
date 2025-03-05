@@ -46,11 +46,13 @@ allow for us to head to the _Actios_ tab at the repo level and click a button to
 it manually.
 <2> GitHub Actions can be configured to run on a CRON manner, great for periodic jobs 
 that should run even when we are not there. In our case we will always clean up the 
-gcloud artifact registry at midnight, and we will only keep the last 3 tags alive. 
+gcloud artifact registry at midnight, and we will only keep the last 2 images alive. 
 Remember that xref:ci-cd-pipelines.adoc#push-two-tags[we have 2 tags that are the same image], 
 meaning that `latest` will take one space, and the following two will be the latest image's 
 commit tag and the previous commit's tag. So we are keeping in essence a latest and 
-one previous version backup.
+one previous version backup. However, since at a physical level, we are not generating 
+2 images, if we query through `gcloud artifacts docker images list` we will only be seeing 
+one artifact (but that might have two tags attached to it).
 <3> Just we keep security in mind and good practices in here as well, we can declare 
 env variables at a specific step of a job, and so that Github obfuscates values that 
 might come from the _secrets_ vault, we have to assign them like this.

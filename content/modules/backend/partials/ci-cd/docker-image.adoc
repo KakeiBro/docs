@@ -33,7 +33,7 @@ don't have to use `USER app` but `USER $APP_UID`. https://github.com/dotnet/dotn
 ====
 
 It's also worth noting that with xref:net-modulith/net-modulith.adoc#centralized-nuget-packages[Centralized Package Management]. 
-`Dockerfile`s have to have some additions to the default structure:
+`Dockerfile` files have to have some additions to the default structure:
 
 ```
 # This stage is used to build the service project
