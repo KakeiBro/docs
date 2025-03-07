@@ -1,0 +1,22 @@
+[source, csharp]
+----
+builder.Services
+    .AddApiVersioning(options =>
+    {
+        options.DefaultApiVersion = new ApiVersion(1); <.>
+        options.ApiVersionReader = new UrlSegmentApiVersionReader(); <.>
+    })
+    .AddApiExplorer(options =>
+    {
+        options.GroupNameFormat = "'v'V"; <.>
+        options.SubstituteApiVersionInUrl = true; <.>
+    });
+----
+<.> We will start with a default `v1` for our application.
+<.> Out of the different versioning schemes that exist, we will use the url segment 
+approach, meaning that prefixing each endpoint we will have its version stated `/v1/`, 
+`/v2/`.
+<.> We will then specify how the template for the version will be constructed, in our 
+case is a simple `v` character and then the number of the version right after `V`.
+<.> We will also enable the service to be able to replace the endpoint template with 
+the respective version when registering endpoints.

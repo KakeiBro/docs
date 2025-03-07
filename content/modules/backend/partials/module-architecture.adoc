@@ -103,3 +103,20 @@ and less boilerplaity. The key lies at _registering the classes under the right 
 Once you do that, then everything should fall into place, since all the abstracted 
 general purpose code is already there. And now integrating and extending should be 
 a really mechanical process.
+
+=== Endpoint versioning
+
+We will leverage **API Versioning** straight out of the `Asp.Versioning.Http` and 
+`Asp.Versioning.Mvc.ApiExplorer` Nugets. The integration with it is quite simple, 
+in the sense that for the time being we can just declare API versioning and work as 
+if we didn't mind about it, however, if the need to start using versioning arises, we 
+can immediately start leveraging the extension methods as we require.
+
+include::partial$code/api-versioning-service.adoc[]
+
+And due to all the legwork we did with <<Module Architecture, assembly scanning>> 
+both for services and endpoints, applying versioning to any other endpoint became 
+seamless since we can leverage the same interface in order to swap out the implementation 
+with a pre-configured one:
+
+include::partial$code/api-versioning-group.adoc[]

@@ -1,0 +1,34 @@
+[source, csharp]
+----
+ApiVersionSet apiVersionSet = app
+    .NewApiVersionSet()
+    .HasApiVersion(new ApiVersion(1)) <.>
+    .ReportApiVersions() <.>
+    .Build();
+RouteGroupBuilder groupBuilder = app
+    .MapGroup("api/v{apiVersion:apiVersion}")
+    .WithApiVersionSet(apiVersionSet); <.>
+
+// Add Modules Routes
+groupBuilder.InstallEndpointsFromAssemblies( <.>
+    app.Configuration,
+    Modules.Authentication.AssemblyReference.Assembly);
+----
+<.> We will only declare a `v1` for now, this can easily be extended later through 
+the fluent pattern.
+<.> We will configure our endpoints to have the ability to report back to the clients 
+through headers and error messages (in case an invalid version is queried), so that the 
+client is aware of deprecations and other available versions.
+<.>  We are building a `RouteGroupBuilder` with a prefix, plus the route template 
+for versioning pre-configured.
+<.> And because we setup our _assembly scanning_ in such an extendable and seamless manner, 
+we can simply swap out the previous `app` instance with the `groupBuilder` instance and 
+now all the endpoints that end up registered will be prefixed with `api/v<number>`. And 
+it's that easy.
++
+[NOTE]
+====
+One thing to take into consideration is that if you introduce API versioning and you 
+have integration tests or further set-up that's dependent on the URL of the endpoint, 
+those will break, and you will have to manually fix them.
+====
