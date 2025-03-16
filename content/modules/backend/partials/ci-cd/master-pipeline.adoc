@@ -107,3 +107,9 @@ its hosting with the newly built one. **Every detail counts**, the replacement w
 take place if we are pointing to the same name and same configurations, if something 
 like the _region_ is different, it will create two services with the same name, but on 
 different regions.
+** This deploy also takes into account environment variables, we build at runtime 
+an `.env` file, and we then add different environment variables to swap out behavior 
+accordingly (this follows gcloud's specific syntax that's akin to `KEY_1: "VALUE_1" KEY_2: "VALUE_2"`), 
+this then is fed to the cloud run deploy command so that it parses them into its 
+runtime configuration. We also delete this temporary `.env` file once the deploy 
+is done.
