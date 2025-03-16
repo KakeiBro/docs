@@ -38,5 +38,92 @@ doesn't end up negatively affected).
 In a normal working dev workstation, we should always have the `appsettings.json` 
 file marked as "changed". We should never have it as fully comitted and without 
 changes, since for dev purposes we would need the different credentials filled in, 
-but never comitted to VC.
+but never comitted to VC when making a commit (and the git hooks help with that).
 ====
+
+== OAuth Flow
+
+[plantuml, oauth-flow-diagram, svg]
+....
+include::partial$diagrams/oauth-flow.puml[]
+....
+
+[.text-center]
+_Figure 1. OAuth Flow Sequence Diagram_
+
+== Redis
+
+In order to get a Docker instance with the neccesary instance of Redis running you can 
+run
+
+```
+docker run -d --name redis-stack -p 6379:6379 redis/redis-stack-server:latest
+```
+
+[WARNING]
+====
+This will just spin of an instance that you can consume straight away, but for our 
+persistence purposes we will run a different command that will bind to a config file 
+plus stating the name of a mounted file that will represent the state of the database.
+====
+
+First of all, based on the xref:database:index.adoc#authentication-module[document 
+diagram], we can immediately identify two main things:
+
+* The `User` document is a **root document**, embedded to it we will have `Token` and 
+`MfaDevice`. When it comes to working with `Redis.OM`, we should mark under an index 
+all the **root documents** (Hence, we don't index the other mapping classes besides `User`).
+* We are leveraging `int` for the Id fields, we could leverage something else such as 
+Guid v7 which has a timestamp component added to it, functionality that is analogous 
+to a ULID (something Redis uses by default). And so will be leveraging _through code_ 
+and a small index field to keep track of the latest id field when inserting new documents. 
+It's also worth noting that when seeding values, we can leverage `f.IndexFaker + 1` when 
+calculating a hard-set id for a record. We do the `+ 1` because the index starts at `0`, 
+and if we try to send such a value as an Id for Redis it will take it as `null` and try 
+to auto-generate an ULID on its own and it will fail since it will try to save it in 
+an `int` field.
+
+_Note:_ If you need to check for the indexes that are present in the Redis instance, 
+you can head into the container and introduce: `redis-cli > FT._LIST`
+
+A really important service we have to disclose is `DataServicesInstaller`, this takes care 
+of leveraging everything that's under the `Data` folder, it will both register necessary 
+services in order to talk to Redis (both from the `Redis.OM` and `Microsoft.Extensions.Caching.StackExchangeRedis` packages), 
+and it will also initiate a `IHostedService` (RedisMigrator) that will be in charge of migrating 
+neccesary indexes and other things that the database needs and in case a change takes place it will try 
+to run idempotent methods in order to get the database up to speed (loose structure integrity). +
+Plus also having the ability to seed data in case the right configuration is in place, the moment 
+the app is shutdown it also has a configurable behavior that will attempt to wipe the Redis instance 
+clean of the things specific to the Auth Module.
+
+== NuGet and Configurations
+
+When it comes to the NuGet packages that the auth module will leverage, we will copy 
+the same cross cutting concern ones (static analyzers, loggers). Plus Redis dependencies 
+and a faker library that can help us with seeding `Bogus`.
+
+include::partial$code/auth-module-nugets.adoc[]
+
+It's also worth noting that there is a really important service called 
+`ConfigurationServicesInstaller`, this takes care of leveraging the `Options<T>` pattern 
+so that we register any type of configuration instance that needs to be registered by 
+being fed from the API's configuration instance.
+
+
+== Notes
+
+* Most of the design decisions behind the usage of interfaces for collections plus making 
+them init-only come from static analyzer suggestions
+** https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca2227[CA2227]
+** https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca1002[CA1002]
+* When logging, there's a way to micro-optimize even further, specially with high-troughput 
+logging scenarios, by avoiding boxing and reducing garbage by coding predefined templates 
+for different logging events, this however will impose a much higher cognitive overhead 
+since this is pushing logging towards a much more structured and complex design, and 
+indirectly strays away from really ad-hoc/sporadic logging messages and introducing the 
+need for pre-defined logging events and metadata assigned to them.
+** https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca1848[CA1848]
+** https://learn.microsoft.com/en-us/dotnet/core/extensions/high-performance-logging[High Performance Logging]
+** https://learn.microsoft.com/en-us/dotnet/core/extensions/logger-message-generator[Logger Message Generator]
+** **IMPORTANT: ** For our use case, we won't incur in such high level of design, 
+hence this specific static analyzer error has been turned off.

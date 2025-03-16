@@ -1,0 +1,11 @@
+@startuml
+
+actor User as user
+boundary UI as ui
+boundary API as api
+control Service as service
+entity SystemUser as su
+database Redis as redis
+
+@enduml
+

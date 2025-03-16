@@ -58,6 +58,16 @@ Another important convention we will always aim at adhering to is **to never phy
 delete records**. (Unless a compelling argument arises for doing so). We should always 
 have a `deleted` field with a `true` representing the record is logically deleted (or not).
 
+[WARNING]
+====
+The conventions on field names and document names will apply mostly for diagram and 
+theoretical purposes (this is an extra overhead, and we will assume that). However, 
+on the physical system, we will be using Microsoft's convention since it will map directly 
+from class and property field names (Pascal Case). This is mostly due to the fact that 
+`Redis.OM` doesn't have a direct way to do a re-mapping of the fields as we would on something 
+like `EF`, and so the exact same names are parsed into the Redis instance for the documents.
+====
+
 == Key Paths
 
 We will hold a structure such as:

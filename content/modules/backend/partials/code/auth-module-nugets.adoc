@@ -1,0 +1,19 @@
+[source, xml]
+----
+<ItemGroup>
+        <!--Cross-Cutting Concerns-->
+        <PackageReference Include="SonarAnalyzer.CSharp"/>
+        <PackageReference Include="StyleCop.Analyzers"/>
+        <PackageReference Include="Serilog.AspNetCore"/>
+        <PackageReference Include="Serilog.Enrichers.Environment"/>
+        <PackageReference Include="Serilog.Enrichers.Thread"/>
+        <PackageReference Include="Serilog.Sinks.Async"/>
+
+        <!--Redis Dependencies-->
+        <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis"/>
+        <PackageReference Include="Redis.OM"/>
+
+        <!--Faker-->
+        <PackageReference Include="Bogus"/>
+    </ItemGroup>
+----
