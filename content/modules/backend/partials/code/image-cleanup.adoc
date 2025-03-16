@@ -8,6 +8,7 @@ REGION=$REGION
 PROJECT_ID=$PROJECT_ID
 REPOSITORY_NAME=$REPOSITORY_NAME
 IMAGE_NAME=$IMAGE_NAME
+ARTIFACT_REGISTRY=$ARTIFACT_REGISTRY
 
 # Authenticate to Google Cloud (already done in the workflow, but included for completeness)
 echo "Authenticating to Google Cloud..."
@@ -15,9 +16,9 @@ gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS 
 
 # Get the list of tags for the specified package, sorted by creation time in descending order
 echo "Fetching tags for package..."
-IMAGES=$(gcloud artifacts docker images list $REPOSITORY_NAME \ <4>
+FULL_NAME="$ARTIFACT_REGISTRY/$PROJECT_ID/$REPOSITORY_NAME/$IMAGE_NAME" <3>
+IMAGES=$(gcloud artifacts docker images list $FULL_NAME \ <4>
   --project=$PROJECT_ID \
-  --location=$REGION \ <3>
   --format="value(DIGEST)" \ <5>
   --sort-by="~CREATE_TIME") <6>
 
@@ -32,11 +33,10 @@ if [ ${#IMAGE_ARRAY[@]} -gt 2 ]; then
   for ((i=2; i<${#IMAGE_ARRAY[@]}; i++)); do
     DIGEST=${IMAGE_ARRAY[$i]}
     echo "Deleting image: $DIGEST"
-    gcloud artifacts docker images delete "$REPOSITORY_NAME@$DIGEST" \ <7>
+    gcloud artifacts docker images delete "$FULL_NAME@$DIGEST" \ <7>
       --project=$PROJECT_ID \
-      --location=$REGION \
       --quiet \
-      --force-delete-tags
+      --delete-tags
   done
 else
   echo "Only ${#IMAGE_ARRAY[@]} tags found. No cleanup needed."
@@ -50,15 +50,19 @@ this assignment (for all variables).
 should be populated already due to the previous steps that ran before this script. 
 (In case this needs to be leveraged elsewhere, be sure to be logged into GCloud before 
 trying to run this script)
-<3> Unlike the `$ARTIFACT_REGISTRY` value that references both the region plus the 
-actual domain, this is simply the region section of that.
+<3> We build the full path to the image at the repository level (notice how this is the same 
+path that we use when pushing an image on the `master-push` action).
 <4> The same repository name that we have under _secrets_, this is the root that 
-we created at the _Artifact Registry_ level.
+we created at the _Artifact Registry_ level, from there on we have to build the path all the way to 
+the specific image that will be used by Cloud Run to spin up an instance.
 <5> Part of glcloud's https://cloud.google.com/sdk/gcloud/reference/artifacts/docker/images/list[docs] 
 references the idea that we can both just get specific fields of the whole payload, in this case 
 we just want the digest to point specifically to it.
 <6> Part of conventions by gcloud allows for us to feed a sorting field reference and 
 with the tilde `~` we can invert the default _ascending_ so that we start from the 2nd newest onwards. 
+_Also,_ the `gcloud` command outputs two lines before the digests, or well _it seems like it_, but we don't 
+have to worry about that, if we try to pipe anything to the output it will only output the digests separated 
+by new lines.
 <7> And so we will get the digest's for each docker image that's hosted, and we will only 
 keep the last 2 images (the last one that was pushed and that should be on our Cloud Run 
 instance and a previous version as a backup). Any other image will be deleted, and no trace 
