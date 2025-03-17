@@ -7,5 +7,24 @@ control Service as service
 entity SystemUser as su
 database Redis as redis
 
+user -> ui: Navigate to the website
+ui -> user: Display login screen
+user -> ui: Select login/sign-up
+ui -> api: Request for OAuth uri
+api -> service: Request for OAuth uri
+service -> service: Compute OAuth uri
+service -> api: Return computed OAuth uri
+api -> ui: Return computed OAuth uri
+ui -> user: Display OAuth screens
+user -> user: Run through OAuth screens
+user -> ui: Hit final button on OAuth flow
+ui -> api: Send OAuth information
+api -> service: Send OAuth information
+service -> service: Process use-case
+service -> su: Upsert internal user information
+su -> redis: Persist user information
+service -> ui: Return successful code
+ui -> user: Redirect user to home
+
 @enduml
 
