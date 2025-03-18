@@ -1,0 +1,48 @@
+= React Router
+
+Reference: https://reactrouter.com/home[React Router Website]
+
+React Router is the most famous library focused specifically on routing needs for SPA 
+applications, it has https://reactrouter.com/home[54.3K] stars on GitHub and more than 
+**10.5K** forks.
+
+We will use this library for our routing needs, specifically on its `Data` mode. 
+However, it's worth noting that there are three modes to pick:
+
+- Framework Mode
+- Data Mode
+- Declarative Mode
+
+There's a https://reactrouter.com/start/modes[reference] on which one to pick, we could've 
+gone for `Framework Mode` but this is (as its name implies) pretty opinionated and the 
+documentation itself just tells us to use a template so that we have an already setup project 
+created with `vite`. We don't want to go that far, and so we will use the next best thing, 
+which is akin to _Angular's_ approach, which is more programatic in nature with files 
+defining the routes.
+
+First of all, docs are not that great since they default to simply using templates, 
+but so that we install only the things that we ran the following commands:
+
+```
+pnpm i react-router
+```
+
+Here's a brief description of the different libraries that we installed:
+
+react-router::
+The core library for React Router. It provides routing logic, components, and hooks 
+necessary for client-side and server-side routing.
+
+== React Router Conventions
+
+Following the xref:ui-folder-structure-patterns.adoc[folder structure conventions], 
+we will have a `features` folder in which, based on the domain, all components, pages, 
+will be saved. E.g., Under `features/auth/pages/Login.tsx` we will have a component 
+that renders a page that is tied to a route from React Router. At the root of the app 
+`src/router.ts` we have declared all the different routes.
+
+[NOTE]
+====
+And it is also worth noting that on `main.tsx` we have imported the object that's 
+created at the previously `router.ts` module.
+====
