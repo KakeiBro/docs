@@ -1,0 +1,45 @@
+== CORS
+
+Cross-Origin Resource Sharing is a mechanism to safely bypass the same-origin policy, 
+that is, it allows a web page to access restricted resources from a server on a different 
+domain than the domain that served the web page. _By default_ HTTP is configured to 
+only allow "same-origin" requests, in an effort to add more security, CORS allows for 
+the developer to configure what type of interactions will be allowed and from which 
+domains.
+
+In our specific use case we will configure CORS (in prod/demo) to have specific policies 
+that would only allow specific shapes of requests. However, for dev purposes we have 
+configured the CORS middleware to accept any request:
+
+[source, csharp]
+----
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddCors(options => <1>
+    {
+        options.AddPolicy( <2>
+            "AllowAll", <3>
+            policy => policy
+                .AllowAnyOrigin() <4>
+                .AllowAnyMethod()
+                .AllowAnyHeader());
+    });
+}
+
+// ...more code
+
+if (builder.Environment.IsDevelopment())
+{
+    app.UseCors("AllowAll"); <5>
+}
+----
+<1> As you can see on the `builder` side of the app we can configure CORS with the 
+`AddCors()` extension method.
+<2> To the parameter of the delegate that the extension method receives we can use another 
+extension method called `AddPolicy()`.
+<3> We can add multiple policies that can abstract a specific domain or set of rules 
+we might want to add to the CORS middleware, we use names to differentiate them.
+<4> And through a delegate on the extension method we leverage the fluent pattern 
+to start the composition of the rules that the policy will add to the middleware.
+<5> And when configuring the HTTP pipeline we have to use the `UseCors()` extension 
+method and call the respective policy so that it's applied to the pipeline.

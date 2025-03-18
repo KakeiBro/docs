@@ -8,3 +8,5 @@ On top of that we will have it orchestrated with Docker (docker-compose), all li
 in its own repository. 
 
 include::partial$code-quality.adoc[]
+
+include::partial$cors.adoc[]
