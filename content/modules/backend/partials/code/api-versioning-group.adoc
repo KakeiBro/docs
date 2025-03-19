@@ -1,4 +1,4 @@
-[source, csharp]
+[source, cs]
 ----
 ApiVersionSet apiVersionSet = app
     .NewApiVersionSet()

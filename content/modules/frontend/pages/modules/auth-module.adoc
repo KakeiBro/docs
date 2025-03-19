@@ -1,0 +1,6 @@
+= Authentication Module
+
+The authentication module code is under `src/features/auth/*`.
+
+include::partial$modules/auth-module/oauth.adoc[]
+

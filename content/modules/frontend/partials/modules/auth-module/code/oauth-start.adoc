@@ -1,0 +1,34 @@
+[source, ts]
+----
+async function startOAuth() {
+    const url = 'http://localhost:5214/api/v1/auth/o-auth-uri/'; <1>
+
+    const response = await fetch(url);
+    const responseBody = await response.json();
+
+    const width = 450; <2>
+    const height = 600;
+    const left = (window.screen.width - width) / 2; 
+    const top = (window.screen.height - height) / 2; <3>
+    window.open(
+        responseBody.uri, // URL to open <4>
+        'GoogleAuth', // Window name <5>
+        `width=${width},height=${height},top=${top},left=${left},popup` <6>
+    );
+}
+
+----
+<1> We will have an endpoint on the backend in charge of composing the OAuth url 
+that a browser can open.
+<2> We are starting with a small screen size for the pop that will open-up.
+<3> We want to open the popup at the middle of the screen, hence we calculate the 
+coordinates for the left and top by diving the total width and height of the screen.
+<4> https://developer.mozilla.org/en-US/docs/Web/API/Window/open[API Reference]. In 
+order to open a popup we should leverage the `window.open` function with three key 
+arguments. The first one is the `uri` to open up.
+<5> A good practice is to give an identifier to this new browsing context, we could 
+just do a `_blank`, but for our instance, giving it a specific name will allow for us 
+to target with an `<a>` and `<form>` elements if we need so.
+<6> Following the different `windowFeatures` we can grant this new window size and position, 
+plus the special `popup` feature that has minimum features (based on the browser's own 
+implementation). This is so that the popup window doesn't look as bloated to the user.

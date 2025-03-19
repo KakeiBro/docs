@@ -1,0 +1,157 @@
+== OAuth
+
+We have a bigger picture of the whole flow (that includes backend) at 
+xref:backend:net-modulith/authentication-module.adoc#oauth-flow[the backend documentation]. 
+However, on this specific page, we will explain the flow of how the frontend 
+communicates through a pop-up between two windows to provide a seamless user experience 
+when login-in/registering a user on the system.
+
+[plantuml, oauth-popup-flow-diagram, svg]
+....
+include::partial$modules/auth-module/diagrams/popup.puml[]
+....
+
+[.text-center]
+_Figure 1. OAuth Popup Sequence Diagram_
+
+* Starting off the idea that the API returns the OAuth URI computed for us, the UI 
+should immediately trigger the opening of a new window with a https://developer.mozilla.org/en-US/docs/Web/API/Window/open[popup nature].
+* In this popup we will run the OAuth flow (the user will take care of that)
+* By the end of the popup flow, a callback (that's provided to the OAuth flow at the beginning) 
+is called (this is specific for the _code_ type of flow we also set at the beginning), 
+this callback will be of the frontend specifically.
+* The callback and frontend uri is run at the popup level, and we extract through query 
+params the `code` that's the piece of data we need to continue further, we then send 
+this to the parent through a `postMessage()` method that the browser's API exposes, right 
+after that the popup self-closes.
+* Once the parent receives the code that the popup provided sent, it can then run 
+a request to a backend endpoint so that the backend starts _under the hood_ the whole 
+process of login/register and finally responding to the frontend with the 
+result, _in case of a success:_ We immediately should be greeted with the `Home Screen`.
+
+[IMPORTANT]
+====
+It's extremely important to state that we need to have configured the **callback uri** 
+at the GCloud side, on the specific OAuth client. This has to correspond to both dev 
+and prod environments also. Failing to have the callback uri registered will result 
+in the OAuth screen to show an error and having no ability to run the authentication 
+flow.
+====
+
+=== Routing on the frontend
+
+We will always receive specifically at the `Login` screen. Regardless of a user already 
+signing-in before, this is a **security-measure**, due to the sensitivy of the information 
+the system holds.
+
+At this screen we will ask the user to sign-up or login, regardless of which option is 
+picked, we will always throw the user towards a Google OAuth popup, the login screen 
+will remain open for the whole duration, and the moment the OAuth screen succeeds it will 
+hit a `/redirect-success` route, that has a _blank_ component in charge of extracting 
+the `code` query param to then send a message back to the parent component.
+
+The way to open the popup will be with the following code (demo code only):
+
+include::partial$modules/auth-module/code/oauth-start.adoc[]
+
+Once the Google OAuth flow finishes, it will try to hit `/redirect-success` on the 
+frontend, and this route is mapped to this blank component in charge of extracting the 
+code that's on a query param and sending it back to the parent:
+
+[source, tsx]
+----
+function RedirectSuccess() {
+  const params = new URLSearchParams(window.location.search); <1>
+  const authCode = params.get('code'); <2>
+
+  if (!window.opener) { <3>
+    return;
+  }
+
+  window.opener.postMessage(
+    { event: 'OAuth', authCode }, <4>
+    window.opener.location.origin <5>
+  );
+  window.close(); <6>
+
+  return <div></div>;
+}
+
+export { RedirectSuccess };
+
+----
+<1> We can get access to a url query string (including the `?` sign) by accessing the 
+`window.location.search` property. We leverage this so that we get a string that can be 
+put into a `URLSearchParams` constructor so that we get a much comfortable interface 
+to extract query params.
+<2> With the `URLSearchParams` instance we can easily access the value from a set query 
+param name.
+<3> Just to avoid useless messages, in case this component doesn't have a parent attached to 
+it, we won't do anything and we will short-circuit the flow immediately.
+<4> We can post to the parent of the popup a message, in our case it will be a javascript 
+object, with an event identifier (since many messages can be listened to and an identifier 
+makes it easier for us to recognize a message from a popup child).
+<5> https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage[postMessage API] 
+So that we get access to the current url, we can leverage the _read-only_ 
+`window.location.origin` property, this returns the `<protocol><hostname>:<port>` string. 
+This is a security measure, since in here we specify what `origin` the target recipient 
+of the message mush have to receive the event. In order for the event to be dispatched 
+the origin must match exactly. Hence we are feeding the `opener's` origin.
+<6> After dispatching the message we self-close the pop-up window.
+
+And at the parent side, we will simply declare a listener for messages, so that the moment 
+we receive the `OAuth` message, we can kick off further logic:
+
+[source, ts]
+----
+const [message, setMessage] = useState('');
+const [eventList, setEventList] = useState(new Array<string>());
+
+const messageCallback = useCallback( <1>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (event: any) => {
+        if (event.origin !== window.location.origin) { <5>
+            return;
+        }
+
+        if (event.data?.event !== 'OAuth') { <6>
+            return;
+        }
+
+        const newEventList = [...eventList, event.data]; <7>
+        setEventList(newEventList);
+        setMessage(JSON.stringify(newEventList));
+    },
+    [eventList]
+);
+
+useEffect(() => {
+    window.addEventListener('message', messageCallback); <2>
+
+    return () => {
+        window.removeEventListener('message', messageCallback); <3>
+    };
+}, [messageCallback]); <4>
+----
+<1> We are leveraging https://react.dev/reference/react/useCallback[the useCallback hook], 
+so that we can cache a function definition between re-renders, this optimizes rendering, 
+and we are using it here specifically since the same function definition must be passed 
+to an `addEventListener` and `removeEventListener` to subscribe and unsubscribe once the 
+component unmounts (we don't want to have a leak there).
+<2> So that we can hear messages that are posted with `postMessage`, we can subscribe 
+to the `message` events, and feed a callback for that specific event.
+<3> And when unsubscribing we have to feed the same function definition (a really bad design 
+choice).
+<4> We are aiming at running the subscription only once after mounting, (but due to the 
+dependency to the `messageCallback` function that talks to state we are adding it as 
+a dependency).
+<5> This is double security, since from our previous example on the posting side, 
+the event should never get here, unless the origin is the same, however, on the consumer 
+side we are also making a validation so that if the event that came back doesn't have 
+the same origin as the current parent window we will return early.
+<6> And also, since many other events can end up getting posted, we will focus on the 
+`OAuth` events solely, in case another event type comes in, we return early.
+<7> Lastly, since this is **_demo code_** we are applying the specific logic that helps 
+us post as state an array and a stringified json from said array to the component. Then 
+we can access these properties to render them on the screen. (In a real use case we would 
+post this to some store or directly call the API to continue with the OAuth flow).

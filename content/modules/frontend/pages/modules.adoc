@@ -1,0 +1,4 @@
+= Modules
+
+Following the same idea as the xref:domain:index.adoc[DDD], we are separating 
+each module's screens by their respective module name. (The backend does the same).

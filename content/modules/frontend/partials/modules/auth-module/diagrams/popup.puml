@@ -1,0 +1,16 @@
+@startuml
+
+actor User as user
+boundary UI as ui
+boundary API as api
+
+api -> ui: Returned OAuth Uri
+ui -> ui: Opens up a popup to run the OAuth flow
+ui -> user: Display to the user the OAuth screen
+user -> ui: Finishes the OAuth flow
+ui -> ui: Exchanges messages between popup and parent window
+ui -> ui: Closes popup window
+ui -> api: Sends to backend the code from OAuth
+
+@enduml
+

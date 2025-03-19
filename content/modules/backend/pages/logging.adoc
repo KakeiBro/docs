@@ -41,7 +41,7 @@ xref:net-modulith/net-modulith.adoc#global-usings[Global Usings].
 A really declarative way to add Serilog to the DI container by feeding configurations 
 through `appsettings.json` is :
 
-[source, csharp]
+[source, cs]
 ----
 // Logging
 builder.Host.UseSerilog((context, configuration) => <1>
@@ -217,7 +217,7 @@ wherever they provide value. This means:
 
 Some conceptual code would look like this:
 
-[source, csharp]
+[source, cs]
 ----
 public void ProcessOrder(Order order)
 {

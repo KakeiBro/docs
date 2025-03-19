@@ -10,7 +10,7 @@ fall into place without much issue.
 Just know that everything starts from the Web API's `Program.cs` side. We make two 
 important calls there:
 
-[source, csharp]
+[source, cs]
 ----
 builder.Services.InstallModulesFromAssemblies( <1>
     builder.Configuration,
@@ -32,7 +32,7 @@ With that in mind, each module should always have its own `IModuleInstaller`. If
 don't have this, then none of the methods we laid out before will pick up on the respective 
 interface to then kickstart further registrations.
 
-[source, csharp]
+[source, cs]
 ----
 using Common.Library;
 using Common.Library.Interfaces;
@@ -61,7 +61,7 @@ the respective method specific to a `IServiceInstaller`.
 
 One such `IServiceInstaller` would look like this:
 
-[source, csharp]
+[source, cs]
 ----
 using Common.Library.Interfaces;
 using Microsoft.Extensions.Configuration;

@@ -1,4 +1,4 @@
-[source, csharp]
+[source, cs]
 ----
 builder.Services
     .AddApiVersioning(options =>

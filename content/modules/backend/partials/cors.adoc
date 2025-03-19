@@ -11,7 +11,7 @@ In our specific use case we will configure CORS (in prod/demo) to have specific 
 that would only allow specific shapes of requests. However, for dev purposes we have 
 configured the CORS middleware to accept any request:
 
-[source, csharp]
+[source, cs]
 ----
 if (builder.Environment.IsDevelopment())
 {
