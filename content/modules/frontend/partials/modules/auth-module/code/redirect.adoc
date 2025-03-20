@@ -1,0 +1,40 @@
+[source, tsx]
+----
+function RedirectSuccess() {
+  const params = new URLSearchParams(window.location.search); <1>
+  const authCode = params.get('code'); <2>
+
+  if (!window.opener) { <3>
+    return;
+  }
+
+  window.opener.postMessage(
+    { event: 'OAuth', authCode }, <4>
+    window.opener.location.origin <5>
+  );
+  window.close(); <6>
+
+  return <div></div>;
+}
+
+export { RedirectSuccess };
+
+----
+<1> We can get access to a url query string (including the `?` sign) by accessing the 
+`window.location.search` property. We leverage this so that we get a string that can be 
+put into a `URLSearchParams` constructor so that we get a much comfortable interface 
+to extract query params.
+<2> With the `URLSearchParams` instance we can easily access the value from a set query 
+param name.
+<3> Just to avoid useless messages, in case this component doesn't have a parent attached to 
+it, we won't do anything and we will short-circuit the flow immediately.
+<4> We can post to the parent of the popup a message, in our case it will be a javascript 
+object, with an event identifier (since many messages can be listened to and an identifier 
+makes it easier for us to recognize a message from a popup child).
+<5> https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage[postMessage API] 
+So that we get access to the current url, we can leverage the _read-only_ 
+`window.location.origin` property, this returns the `<protocol><hostname>:<port>` string. 
+This is a security measure, since in here we specify what `origin` the target recipient 
+of the message mush have to receive the event. In order for the event to be dispatched 
+the origin must match exactly. Hence we are feeding the `opener's` origin.
+<6> After dispatching the message we self-close the pop-up window.

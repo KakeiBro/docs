@@ -1,0 +1,53 @@
+[source, ts]
+----
+const [message, setMessage] = useState('');
+const [eventList, setEventList] = useState(new Array<string>());
+
+const messageCallback = useCallback( <1>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (event: any) => {
+        if (event.origin !== window.location.origin) { <5>
+            return;
+        }
+
+        if (event.data?.event !== 'OAuth') { <6>
+            return;
+        }
+
+        const newEventList = [...eventList, event.data]; <7>
+        setEventList(newEventList);
+        setMessage(JSON.stringify(newEventList));
+    },
+    [eventList]
+);
+
+useEffect(() => {
+    window.addEventListener('message', messageCallback); <2>
+
+    return () => {
+        window.removeEventListener('message', messageCallback); <3>
+    };
+}, [messageCallback]); <4>
+----
+<1> We are leveraging https://react.dev/reference/react/useCallback[the useCallback hook], 
+so that we can cache a function definition between re-renders, this optimizes rendering, 
+and we are using it here specifically since the same function definition must be passed 
+to an `addEventListener` and `removeEventListener` to subscribe and unsubscribe once the 
+component unmounts (we don't want to have a leak there).
+<2> So that we can hear messages that are posted with `postMessage`, we can subscribe 
+to the `message` events, and feed a callback for that specific event.
+<3> And when unsubscribing we have to feed the same function definition (a really bad design 
+choice).
+<4> We are aiming at running the subscription only once after mounting, (but due to the 
+dependency to the `messageCallback` function that talks to state we are adding it as 
+a dependency).
+<5> This is double security, since from our previous example on the posting side, 
+the event should never get here, unless the origin is the same, however, on the consumer 
+side we are also making a validation so that if the event that came back doesn't have 
+the same origin as the current parent window we will return early.
+<6> And also, since many other events can end up getting posted, we will focus on the 
+`OAuth` events solely, in case another event type comes in, we return early.
+<7> Lastly, since this is **_demo code_** we are applying the specific logic that helps 
+us post as state an array and a stringified json from said array to the component. Then 
+we can access these properties to render them on the screen. (In a real use case we would 
+post this to some store or directly call the API to continue with the OAuth flow).

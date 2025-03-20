@@ -58,100 +58,75 @@ Once the Google OAuth flow finishes, it will try to hit `/redirect-success` on t
 frontend, and this route is mapped to this blank component in charge of extracting the 
 code that's on a query param and sending it back to the parent:
 
-[source, tsx]
-----
-function RedirectSuccess() {
-  const params = new URLSearchParams(window.location.search); <1>
-  const authCode = params.get('code'); <2>
-
-  if (!window.opener) { <3>
-    return;
-  }
-
-  window.opener.postMessage(
-    { event: 'OAuth', authCode }, <4>
-    window.opener.location.origin <5>
-  );
-  window.close(); <6>
-
-  return <div></div>;
-}
-
-export { RedirectSuccess };
-
-----
-<1> We can get access to a url query string (including the `?` sign) by accessing the 
-`window.location.search` property. We leverage this so that we get a string that can be 
-put into a `URLSearchParams` constructor so that we get a much comfortable interface 
-to extract query params.
-<2> With the `URLSearchParams` instance we can easily access the value from a set query 
-param name.
-<3> Just to avoid useless messages, in case this component doesn't have a parent attached to 
-it, we won't do anything and we will short-circuit the flow immediately.
-<4> We can post to the parent of the popup a message, in our case it will be a javascript 
-object, with an event identifier (since many messages can be listened to and an identifier 
-makes it easier for us to recognize a message from a popup child).
-<5> https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage[postMessage API] 
-So that we get access to the current url, we can leverage the _read-only_ 
-`window.location.origin` property, this returns the `<protocol><hostname>:<port>` string. 
-This is a security measure, since in here we specify what `origin` the target recipient 
-of the message mush have to receive the event. In order for the event to be dispatched 
-the origin must match exactly. Hence we are feeding the `opener's` origin.
-<6> After dispatching the message we self-close the pop-up window.
+include::partial$modules/auth-module/code/redirect.adoc[]
 
 And at the parent side, we will simply declare a listener for messages, so that the moment 
 we receive the `OAuth` message, we can kick off further logic:
 
+include::partial$modules/auth-module/code/parent-react.adoc[]
+
+=== Talking to the backend
+
+It's once the parent screen receives the code from OAuth, that we will send that to 
+the backend so that it can do everything on its own, and we wait for a response back:
+
 [source, ts]
 ----
-const [message, setMessage] = useState('');
-const [eventList, setEventList] = useState(new Array<string>());
-
-const messageCallback = useCallback( <1>
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (event: any) => {
-        if (event.origin !== window.location.origin) { <5>
-            return;
-        }
-
-        if (event.data?.event !== 'OAuth') { <6>
-            return;
-        }
-
-        const newEventList = [...eventList, event.data]; <7>
-        setEventList(newEventList);
-        setMessage(JSON.stringify(newEventList));
-    },
-    [eventList]
-);
-
 useEffect(() => {
-    window.addEventListener('message', messageCallback); <2>
+    async function postAuthCode() {
+      const url = new URL('http://localhost:5214/api/v1/auth/o-auth-code/');
+      url.searchParams.set('code', eventList[eventList.length - 1]); <1>
 
-    return () => {
-        window.removeEventListener('message', messageCallback); <3>
-    };
-}, [messageCallback]); <4>
+      const response = await fetch(url, { method: 'POST' }); <2>
+      const responseBody = await response.json();
+
+      if (response.status === 200) { <3>
+        navigate('/login', { state: { code: responseBody.code } }); <4>
+      }
+    }
+    if (eventList.length < 1) {
+      return;
+    }
+
+    postAuthCode();
+  }, [eventList]);
 ----
-<1> We are leveraging https://react.dev/reference/react/useCallback[the useCallback hook], 
-so that we can cache a function definition between re-renders, this optimizes rendering, 
-and we are using it here specifically since the same function definition must be passed 
-to an `addEventListener` and `removeEventListener` to subscribe and unsubscribe once the 
-component unmounts (we don't want to have a leak there).
-<2> So that we can hear messages that are posted with `postMessage`, we can subscribe 
-to the `message` events, and feed a callback for that specific event.
-<3> And when unsubscribing we have to feed the same function definition (a really bad design 
-choice).
-<4> We are aiming at running the subscription only once after mounting, (but due to the 
-dependency to the `messageCallback` function that talks to state we are adding it as 
-a dependency).
-<5> This is double security, since from our previous example on the posting side, 
-the event should never get here, unless the origin is the same, however, on the consumer 
-side we are also making a validation so that if the event that came back doesn't have 
-the same origin as the current parent window we will return early.
-<6> And also, since many other events can end up getting posted, we will focus on the 
-`OAuth` events solely, in case another event type comes in, we return early.
-<7> Lastly, since this is **_demo code_** we are applying the specific logic that helps 
-us post as state an array and a stringified json from said array to the component. Then 
-we can access these properties to render them on the screen. (In a real use case we would 
-post this to some store or directly call the API to continue with the OAuth flow).
+<1> Always use APIs that are already there to make your life easier, do not hard wire 
+or re-invent the wheel.
+<2> We make a post to the specific backend endpoint in order to send the code from 
+OAuth.
+<3> In case the backend responds with a success, we will redirect the user to the home 
+screen
+<4> We make use of the `useNavigate()` hook to work with React Router's navigation.
+
+=== Notes
+
+* When consuming React Router hooks plus other utilities, tests easily break due to the 
+fact that we almost never test from `main.tsx` component that holds the wrapper context. 
+It is for this reason that we have to hydrate our components with the correct React Router 
+context through a clever usage of re-exports and wrappers
+** Under `src/test-utils/testing-library-utils.tsx` you can have a look at how we 
+swap out our router for a `MemoryRouter`, this interface enables us to have the consumers 
+feeding all properties that you can normally feed to a router and a `render()` function, plus wrapping a component 
+(facade pattern), however under the hood we are changing the router implementation.
+** When testing a component that requires for us to have a router context, we can 
+import this module instead: `import { render, screen } from 'testing-library-utils';` 
+** In order for typescript and vitest to resolve all the remaps correctly we have to edit 
+two places:
+*** On the `tsconfig.app.json` or `tsconfig.json` file we have to add:
++
+```
+"paths": {
+  "testing-library-utils": ["./src/test-utils/testing-library-utils.tsx"]
+}
+```
+*** And on the `vitest.config.ts` side we have to also add:
++
+```
+resolve: {
+  alias: {
+    'testing-library-utils': '/src/test-utils/testing-library-utils.tsx',
+    src: '/src',
+  },
+},
+```
